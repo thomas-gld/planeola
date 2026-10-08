@@ -5,6 +5,7 @@ import FeedbackProvider from './components/FeedbackProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 import Loading from './components/Loading';
+import { useAuth } from './contexts/AuthContext';
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -21,6 +22,19 @@ const MyAvailability = lazy(() => import('./pages/MyAvailability'));
 const Options = lazy(() => import('./pages/Options'));
 const Organizations = lazy(() => import('./pages/Organizations'));
 const Legal = lazy(() => import('./pages/Legal'));
+const Landing = lazy(() => import('./pages/Landing'));
+
+// "/" is the public landing page for visitors and the admin home once signed in.
+function RootRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return <Loading fullScreen />;
+  if (!user) return <Landing />;
+  return (
+    <ProtectedRoute>
+      <Home />
+    </ProtectedRoute>
+  );
+}
 
 function App() {
   return (
@@ -36,14 +50,7 @@ function App() {
               <Route path="/legal" element={<Legal page="legal" />} />
               <Route path="/privacy" element={<Legal page="privacy" />} />
 
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Home />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/" element={<RootRoute />} />
               <Route
                 path="/organizations"
                 element={

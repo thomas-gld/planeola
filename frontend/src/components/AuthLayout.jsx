@@ -5,7 +5,9 @@ export default function AuthLayout({ title, subtitle, children }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg p-4">
       <div className="w-full max-w-[420px] border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal-sm p-7">
-        <img src="/planeola_rect.png" alt="Planeola" className="h-14 w-auto mx-auto mb-7" />
+        <Link to="/" className="block w-fit mx-auto mb-7">
+          <img src="/planeola_rect.png" alt="Planeola" className="h-14 w-auto" />
+        </Link>
         <h1 className="font-sans font-bold text-headline tracking-[-0.025em] mb-[3px]">{title}</h1>
         {subtitle && (
           <p className="font-mono text-label uppercase tracking-widest text-ink/50 mb-6">
