@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+.python-version
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# Environment variables
+.env
+*.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite3
+
+# Data files (backup)
+backend/backups/
+db_save/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+.npm
+.eslintcache
+.vite/
+.yarn-integrity
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+frontend/dist/
+backend/frontend_dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+
+# Bug reports and internal documentation
+BUGFIX*.md
+
+# Logs directory
+backend/logs/

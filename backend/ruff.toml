@@ -1,0 +1,14 @@
+target-version = "py310"
+line-length = 100
+extend-exclude = [".venv", "venv"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+    "E501",  # line length — not enforced (many long log/format strings)
+    "B008",  # function calls in defaults — required by FastAPI Depends()
+]
+
+[lint.per-file-ignores]
+# conftest disables the rate limiter before importing the app on purpose
+"tests/conftest.py" = ["E402"]

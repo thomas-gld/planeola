@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+starlette
+pydantic
+python-dotenv
+
+
+sqlalchemy[asyncio]
+asyncpg
+alembic
+psycopg2-binary
+
+bcrypt
+PyJWT
+
+slowapi

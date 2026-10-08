@@ -1,0 +1,230 @@
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0.5cm;
+  }
+
+  html,
+  body {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    background: white !important;
+  }
+
+  /* Chrome/App-only affordances: floating widgets, headers, action buttons. */
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  /* Keep the category/time-slot colours and the black grid, which carry
+     meaning in the printed planning. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+    font-size: 10px !important;
+  }
+  table th,
+  table td {
+    padding: 2px 4px !important;
+    word-break: break-word;
+    border: 1px solid #000 !important;
+  }
+
+  /* Drop the hard offset shadows — they just smear on paper. */
+  .shadow-brutal,
+  .shadow-brutal-xs,
+  .shadow-brutal-sm,
+  .shadow-brutal-md,
+  .shadow-brutal-lg,
+  .shadow-brutal-xl {
+    box-shadow: none !important;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Theme tokens. Values are raw "R G B" channels so Tailwind can apply opacity
+   modifiers to them (e.g. text-ink/50). Consumed via the semantic color names
+   declared in tailwind.config.cjs — always prefer those (bg-primary,
+   border-ink, …) over raw palette classes so the theme stays swappable here.
+   --------------------------------------------------------------------------- */
+:root {
+  --color-ink: 20 20 20; /* borders, text, hard shadows (softened off pure black) */
+  --color-bg: 242 245 251; /* page background — faint blue-grey */
+  --color-page-admin: 252 242 242; /* admin home background, faint red */
+  --color-rail-admin: 253 226 226; /* navigation background, admin */
+  --color-rail-member: 221 232 255; /* navigation background, member */
+  --color-surface: 255 255 255; /* cards, inputs */
+  --color-muted: 245 245 244; /* subdued fills (disabled rows, wells) */
+  --color-well: 247 247 245; /* table headers, collapsed rows, wells */
+  --color-closed: 241 241 239; /* a day the planning is closed on */
+
+  --color-primary: 37 99 235; /* main accent — planning, primary actions */
+  --color-secondary: 124 58 237; /* secondary accent — members */
+  --color-accent: 252 211 77; /* highlights, warnings, pending states */
+  --color-success: 22 163 74; /* confirmations, validate */
+  --color-danger: 220 38 38; /* destructive actions, errors */
+  --color-warning: 180 83 9; /* pending states, attention bands */
+
+  /* Tints back the accents as a band or hover background, and the deep
+     variants darken the same hue for text and hover states. */
+  --color-primary-tint: 238 243 255;
+  --color-primary-deep: 29 78 216;
+  --color-secondary-tint: 245 240 255;
+  --color-secondary-deep: 109 40 217;
+  --color-warning-tint: 255 251 235;
+  --color-danger-deep: 185 28 28;
+  --color-success-deep: 21 128 61;
+  --color-danger-tint: 254 226 226;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-bg text-ink;
+  }
+}
+
+@layer components {
+  /* Neo-brutalist primitives, softened: thinner borders, rounded corners,
+     hard offset shadows, a tactile "press" on click (the element slides into
+     its own shadow). No black fills — colour is applied via tint/border only. */
+  /* Buttons and card titles are Space Grotesk mixed case now (mono is
+     reserved for labels, counts and numerals — see .label-brutal). */
+  .btn-brutal {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-ink rounded-brutal
+      font-sans text-sm font-bold tracking-snug
+      shadow-brutal-sm transition-all
+      hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal
+      active:translate-x-0 active:translate-y-0 active:shadow-none
+      disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-brutal-primary {
+    @apply btn-brutal bg-primary text-surface;
+  }
+  .btn-brutal-white {
+    @apply btn-brutal bg-surface text-ink;
+  }
+  .btn-brutal-success {
+    @apply btn-brutal bg-success text-surface;
+  }
+  .btn-brutal-danger {
+    @apply btn-brutal bg-danger text-surface;
+  }
+
+  .card-brutal {
+    @apply border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal;
+  }
+
+  /* Form controls. Thin-bordered, rounded, monospaced values. */
+  .input-brutal {
+    @apply w-full border-2 border-ink rounded-brutal bg-surface px-3 py-2 font-mono text-sm
+      outline-none transition-shadow
+      focus:shadow-brutal-sm
+      disabled:bg-muted disabled:opacity-60;
+  }
+  .select-brutal {
+    @apply input-brutal appearance-none pr-8 cursor-pointer;
+  }
+  /* Same box as .input-brutal but Space Grotesk, not mono — for prose/identity
+     fields (names, org name, email) where mono reads wrong while typing. */
+  .input-brutal-text {
+    @apply input-brutal font-sans;
+  }
+  .label-brutal {
+    @apply block font-mono text-xs font-bold uppercase tracking-widest text-ink/60 mb-2;
+  }
+
+  /* Hairline variant of .input-brutal: a thin border by default, going to
+     the full 2px ink border on focus. Used where a full-bleed page reads too
+     heavy with every field pre-outlined (Options bands, Auth cards). */
+  .input-brutal-hairline {
+    @apply w-full border border-ink/25 rounded-brutal bg-surface px-3 py-2.5 font-mono text-sm
+      outline-none transition-all
+      focus:border-2 focus:border-ink focus:px-[11px] focus:py-2
+      disabled:bg-muted disabled:opacity-60;
+  }
+  .input-brutal-hairline-text {
+    @apply input-brutal-hairline font-sans font-semibold;
+  }
+
+  /* Inline feedback box: a tinted 1px border, not a 2px ink outline. */
+  .alert-brutal {
+    @apply flex items-center gap-2.5 rounded-brutal border px-4 py-3 text-sm font-semibold;
+  }
+  .alert-brutal-success {
+    @apply alert-brutal border-success/45 bg-success/[0.08] text-success;
+  }
+  .alert-brutal-danger {
+    @apply alert-brutal border-danger/45 bg-danger/[0.08] text-danger-deep;
+  }
+
+  /* Small uppercase pill used for counts, roles and statuses. */
+  .badge-brutal {
+    @apply inline-flex items-center gap-1.5 border-2 border-ink bg-surface rounded-full
+      px-2 py-0.5 font-mono text-xs font-bold uppercase tracking-wide;
+  }
+
+  /* Data tables: quiet header (no black band), hairline inner rules — only
+     the header/body divider keeps the full-weight ink border. */
+  .table-brutal {
+    @apply w-full border-collapse bg-surface text-sm;
+  }
+  .table-brutal thead th {
+    @apply border-b-2 border-ink border-l border-l-ink/10 first:border-l-0
+      bg-surface text-ink px-3 py-2
+      font-mono text-xs font-bold uppercase tracking-wide text-left whitespace-nowrap;
+  }
+  .table-brutal tbody td {
+    @apply border-t border-t-ink/10 border-l border-l-ink/10 first:border-l-0
+      px-3 py-2 align-middle;
+  }
+
+  /* Wrapper giving a table the standard bordered/shadowed frame. */
+  .table-frame {
+    @apply overflow-x-auto rounded-brutal-lg border-2 border-ink shadow-brutal bg-surface;
+  }
+
+  /* Rendered Markdown of the legal pages. */
+  .legal-prose {
+    @apply text-sm leading-[1.65] text-ink/85;
+  }
+  .legal-prose h1 {
+    @apply font-sans font-bold text-[26px] leading-tight tracking-[-0.025em] text-ink mb-5;
+  }
+  .legal-prose h2 {
+    @apply font-sans font-bold text-title leading-snug tracking-snugger text-ink mt-8 mb-2.5;
+  }
+  .legal-prose p,
+  .legal-prose ul {
+    @apply mb-3;
+  }
+  .legal-prose ul {
+    @apply list-disc pl-5 space-y-1;
+  }
+  .legal-prose ul ul {
+    @apply mt-1 mb-0;
+  }
+  .legal-prose a {
+    @apply font-semibold text-primary underline hover:text-primary-deep;
+  }
+  .legal-prose strong {
+    @apply font-semibold text-ink;
+  }
+}
+
+@layer utilities {
+  .scroll-thin {
+    scrollbar-width: thin;
+  }
+}
