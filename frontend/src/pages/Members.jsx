@@ -250,116 +250,118 @@ export default function Members() {
           </span>
         </div>
 
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr>
-              <th className="w-[190px] border-b-2 border-ink bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left whitespace-nowrap">
-                Name
-              </th>
-              <th className="w-24 border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-center whitespace-nowrap">
-                Account
-              </th>
-              <th className="border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left">
-                Availability notes
-              </th>
-              <th className="w-[190px] border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left">
-                Contact
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(() => {
-              let lastCategory = null;
-              return sorted.flatMap((member) => {
-                const currentCategory = member.categories?.[0] || 'Other';
-                const catColor = catColorOf(member.categories);
-                const rows = [];
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="w-[190px] border-b-2 border-ink bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left whitespace-nowrap">
+                  Name
+                </th>
+                <th className="w-24 border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-center whitespace-nowrap">
+                  Account
+                </th>
+                <th className="border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left">
+                  Availability notes
+                </th>
+                <th className="w-[190px] border-b-2 border-ink border-l border-ink/10 bg-surface px-7 py-[11px] font-sans text-row font-bold tracking-snug text-left">
+                  Contact
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                let lastCategory = null;
+                return sorted.flatMap((member) => {
+                  const currentCategory = member.categories?.[0] || 'Other';
+                  const catColor = catColorOf(member.categories);
+                  const rows = [];
 
-                if (currentCategory !== lastCategory) {
-                  lastCategory = currentCategory;
+                  if (currentCategory !== lastCategory) {
+                    lastCategory = currentCategory;
+                    rows.push(
+                      <tr key={`category-${currentCategory}`}>
+                        <td
+                          colSpan={4}
+                          className="border-t border-b border-ink/10 px-7 py-[7px] font-sans text-row font-bold tracking-snug"
+                          style={{
+                            color: catColor || undefined,
+                            backgroundColor: catColor ? hexToRgba(catColor, 0.09) : undefined,
+                          }}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ background: catColor || 'rgb(var(--color-ink) / 0.4)' }}
+                            />
+                            {currentCategory} · {categoryCounts[currentCategory] ?? 0}
+                          </span>
+                        </td>
+                      </tr>,
+                    );
+                  }
+
                   rows.push(
-                    <tr key={`category-${currentCategory}`}>
+                    <tr
+                      key={member.id}
+                      onClick={() => navigate(`/members/${member.id}`)}
+                      className="cursor-pointer border-t border-ink/10 transition hover:bg-muted"
+                    >
                       <td
-                        colSpan={4}
-                        className="border-t border-b border-ink/10 px-7 py-[7px] font-sans text-row font-bold tracking-snug"
-                        style={{
-                          color: catColor || undefined,
-                          backgroundColor: catColor ? hexToRgba(catColor, 0.09) : undefined,
-                        }}
+                        className="px-7 py-[11px] font-semibold text-row"
+                        style={categoryTextStyle(member.categories)}
                       >
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className="w-2 h-2 rounded-full"
-                            style={{ background: catColor || 'rgb(var(--color-ink) / 0.4)' }}
-                          />
-                          {currentCategory} · {categoryCounts[currentCategory] ?? 0}
-                        </span>
+                        {member.first_name} <span className="uppercase">{member.last_name}</span>
+                      </td>
+
+                      <td className="border-l border-ink/10 px-3.5 py-[11px] text-center">
+                        <AccountPill
+                          member={member}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAccountClick(member);
+                          }}
+                          onCancel={(e) => {
+                            e.stopPropagation();
+                            handleCancelInvitation(member);
+                          }}
+                        />
+                      </td>
+
+                      <td className="border-l border-ink/10 px-3.5 py-1.5">
+                        <NotesField
+                          value={member.availability_notes || ''}
+                          onSave={(notes) =>
+                            handleUpdate(
+                              member.id,
+                              { availability_notes: notes },
+                              'Could not save the note.',
+                            )
+                          }
+                        />
+                      </td>
+                      <td
+                        className="border-l border-ink/10 px-7 py-[11px] whitespace-nowrap font-mono text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center gap-2">
+                          {member.email}
+                          <button
+                            onClick={() => copyEmail(member.email)}
+                            className="text-ink/40 hover:text-ink align-middle"
+                          >
+                            <ClipboardCopy size={13} />
+                          </button>
+                        </div>
+                        <div className="text-ink/50">{formatPhone(member.phone)}</div>
                       </td>
                     </tr>,
                   );
-                }
-
-                rows.push(
-                  <tr
-                    key={member.id}
-                    onClick={() => navigate(`/members/${member.id}`)}
-                    className="cursor-pointer border-t border-ink/10 transition hover:bg-muted"
-                  >
-                    <td
-                      className="px-7 py-[11px] font-semibold text-row"
-                      style={categoryTextStyle(member.categories)}
-                    >
-                      {member.first_name} <span className="uppercase">{member.last_name}</span>
-                    </td>
-
-                    <td className="border-l border-ink/10 px-3.5 py-[11px] text-center">
-                      <AccountPill
-                        member={member}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAccountClick(member);
-                        }}
-                        onCancel={(e) => {
-                          e.stopPropagation();
-                          handleCancelInvitation(member);
-                        }}
-                      />
-                    </td>
-
-                    <td className="border-l border-ink/10 px-3.5 py-1.5">
-                      <NotesField
-                        value={member.availability_notes || ''}
-                        onSave={(notes) =>
-                          handleUpdate(
-                            member.id,
-                            { availability_notes: notes },
-                            'Could not save the note.',
-                          )
-                        }
-                      />
-                    </td>
-                    <td
-                      className="border-l border-ink/10 px-7 py-[11px] whitespace-nowrap font-mono text-xs"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-center gap-2">
-                        {member.email}
-                        <button
-                          onClick={() => copyEmail(member.email)}
-                          className="text-ink/40 hover:text-ink align-middle"
-                        >
-                          <ClipboardCopy size={13} />
-                        </button>
-                      </div>
-                      <div className="text-ink/50">{formatPhone(member.phone)}</div>
-                    </td>
-                  </tr>,
-                );
-                return rows;
-              });
-            })()}
-          </tbody>
-        </table>
+                  return rows;
+                });
+              })()}
+            </tbody>
+          </table>
+        </div>
 
         {resignedMembers.length > 0 && (
           <details className="group mt-auto border-t-2 border-ink bg-well">
