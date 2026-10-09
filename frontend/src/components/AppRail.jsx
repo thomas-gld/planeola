@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import useOrgAccounts from '../hooks/useOrgAccounts';
+import OrgSwitcher from './OrgSwitcher';
 
 // Written out in full: Tailwind only picks up class names it can see.
 const BLUE = { text: 'text-primary' };
@@ -36,7 +37,7 @@ const TAB_LABELS = { '/my-availability': 'Availability', '/my-profile': 'Profile
 export default function AppRail() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { current } = useOrgAccounts();
+  const { accounts } = useOrgAccounts();
   const isAdmin = user?.role === 'admin';
   const items = isAdmin ? ADMIN_ITEMS : MEMBER_ITEMS;
   // Tells the two spaces apart at a glance.
@@ -100,9 +101,13 @@ export default function AppRail() {
         <div className="w-[34px] h-[34px] shrink-0 border-2 border-ink rounded-brutal-sm overflow-hidden">
           <img src="/planeola_carre.png" alt="" className="w-full h-full object-cover" />
         </div>
-        <span className="flex-1 min-w-0 truncate font-bold text-sm">
-          {current?.name || 'Planeola'}
-        </span>
+        <div className="flex-1 min-w-0">
+          {accounts.length > 0 ? (
+            <OrgSwitcher inMobileHeader />
+          ) : (
+            <span className="block truncate font-bold text-sm">Planeola</span>
+          )}
+        </div>
         <button
           onClick={handleLogout}
           title="Log out"

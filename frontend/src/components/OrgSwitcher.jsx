@@ -12,7 +12,7 @@ import usePendingInvites from '../hooks/usePendingInvites';
 
 // Hidden until the session has an organization: the home page has its own picker.
 // `showEmail`: the login email above the button, on the home pages.
-export default function OrgSwitcher({ showEmail = false }) {
+export default function OrgSwitcher({ showEmail = false, inMobileHeader = false }) {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const { accounts, current, email, switching, switchTo } = useOrgAccounts();
@@ -33,7 +33,12 @@ export default function OrgSwitcher({ showEmail = false }) {
   if (!user || !user.role || accounts.length === 0) return null;
 
   return (
-    <div ref={ref} className="relative z-50 no-print flex flex-col items-end gap-1.5">
+    <div
+      ref={ref}
+      className={`relative z-50 no-print flex-col gap-1.5 ${
+        inMobileHeader ? 'flex items-start min-w-0' : 'hidden sm:flex items-end'
+      }`}
+    >
       {showEmail && email && (
         <span
           title="Your login email"
@@ -45,9 +50,11 @@ export default function OrgSwitcher({ showEmail = false }) {
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={switching}
-        className="relative inline-flex items-center gap-2 border border-ink/20 rounded-brutal bg-surface
-          px-3 py-2 text-row font-semibold
-          max-w-[160px] sm:max-w-[220px] transition disabled:opacity-60"
+        className={`relative inline-flex items-center gap-2 bg-surface px-3 font-semibold transition disabled:opacity-60 ${
+          inMobileHeader
+            ? 'h-[38px] max-w-full border-2 border-ink rounded-brutal-sm text-sm'
+            : 'py-2 border border-ink/20 rounded-brutal text-row max-w-[160px] sm:max-w-[220px]'
+        }`}
         title="Switch organization"
       >
         <span className="truncate">{current?.name || 'Organization'}</span>
@@ -56,7 +63,9 @@ export default function OrgSwitcher({ showEmail = false }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 border-2 border-ink rounded-brutal bg-surface shadow-brutal overflow-hidden">
+        <div
+          className={`absolute ${inMobileHeader ? 'left-0' : 'right-0'} top-full mt-2 w-64 border-2 border-ink rounded-brutal bg-surface shadow-brutal overflow-hidden`}
+        >
           <div className="px-3 py-2 font-mono text-xs font-bold uppercase tracking-widest text-ink/50 border-b-2 border-ink">
             Your organizations
           </div>
