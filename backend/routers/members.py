@@ -1,14 +1,14 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.logging import logger
-from core.options import get_option
+from core.options import get_option, org_today
 from core.security import get_account_id, get_current_user, require_admin
 from db import SessionDep
 from email_service import send_invitation_email, send_notes_notification_email
-from models import Invitation, Login, User, UserRole
+from models import Assignment, Invitation, Login, User, UserRole
 from models import Member as MemberRow
 from schemas import Member
 
@@ -78,9 +78,34 @@ async def _check_email_free(
         )
 
 
+def _primary_category(categories: list[str] | None) -> str:
+    return categories[0] if categories else "member"
+
+
+async def _move_future_assignments(session: AsyncSession, member: MemberRow, old: str) -> None:
+    new = _primary_category(member.categories)
+    today = await org_today(session, member.account_id)
+    moved = (
+        Assignment.member_id == member.id,
+        Assignment.category == old,
+        Assignment.date >= today,
+    )
+    # Avoid duplicates
+    taken = select(Assignment.date, Assignment.time_slot).where(
+        Assignment.member_id == member.id, Assignment.category == new
+    )
+    await session.execute(
+        delete(Assignment).where(*moved, tuple_(Assignment.date, Assignment.time_slot).in_(taken))
+    )
+    await session.execute(update(Assignment).where(*moved).values(category=new))
+
+
 def _member_fields(data: Member) -> dict:
     """Formatted names, without the non-column previous_availability_notes."""
     fields = data.model_dump(exclude={"previous_availability_notes"})
+    fields["categories"] = [c.strip() for c in fields["categories"] if c.strip()]
+    if not fields["categories"]:
+        raise HTTPException(status_code=400, detail="A member needs a category")
     fields["last_name"] = fields["last_name"].upper()
     fields["first_name"] = fields["first_name"].capitalize()
     return fields
@@ -161,8 +186,11 @@ async def update_member(
         update_data = {k: v for k, v in update_data.items() if k in MEMBER_SELF_EDITABLE}
     await _check_email_free(session, member.account_id, data.email, member.id)
 
+    old_category = _primary_category(member.categories)
     for field, value in update_data.items():
         setattr(member, field, value)
+    if _primary_category(member.categories) != old_category:
+        await _move_future_assignments(session, member, old_category)
     # The linked membership's display name follows the member's.
     user = await session.get(User, member.user_id) if member.user_id else None
     if user:

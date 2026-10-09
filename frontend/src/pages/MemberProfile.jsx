@@ -121,6 +121,10 @@ export default function MemberProfile() {
 
   const handleSubmit = async () => {
     if (saving) return;
+    if (!member.categories?.length) {
+      notify('Choose a category.', 'error');
+      return;
+    }
     setSaving(true);
     const data = { ...member, resigned: member.resigned || false };
 

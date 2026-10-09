@@ -68,8 +68,8 @@ export default function MemberPlanning() {
     currentMonth.startOf('month').add(i, 'day'),
   );
 
-  const memberColor = (member) =>
-    getCategoryColor(categories, member.categories?.[0]) || 'rgb(var(--color-ink))';
+  const categoryColor = (category) =>
+    getCategoryColor(categories, category) || 'rgb(var(--color-ink))';
   const myMember = members.find((member) => member.user_id === user?.id);
   const isMe = (member) => myMember && member.id === myMember.id;
 
@@ -85,18 +85,23 @@ export default function MemberPlanning() {
   };
 
   const getAllForSlot = (dateStr, time_slot) =>
-    categories.flatMap((cat) => getCategoryMembers(dateStr, time_slot, cat.name));
+    categories.flatMap((cat) =>
+      getCategoryMembers(dateStr, time_slot, cat.name).map((member) => ({
+        member,
+        category: cat.name,
+      })),
+    );
 
   // `dot`: the grouped layout's header does not name the category.
-  const renderName = (member, dot) => (
+  const renderName = (member, category, dot) => (
     <span
-      key={member.id}
+      key={`${category}-${member.id}`}
       className={`inline-flex gap-1 ${dot ? 'items-center' : 'items-baseline'}`}
     >
       {dot && (
         <span
           className="w-1.5 h-1.5 shrink-0 rounded-full"
-          style={{ background: memberColor(member) }}
+          style={{ background: categoryColor(category) }}
         />
       )}
       <span
@@ -104,7 +109,7 @@ export default function MemberPlanning() {
         style={
           isMe(member)
             ? { color: 'rgb(var(--color-primary))', fontWeight: 700 }
-            : { color: memberColor(member) }
+            : { color: categoryColor(category) }
         }
       >
         {member.first_name} {member.last_name}
@@ -257,8 +262,8 @@ export default function MemberPlanning() {
                           className="min-w-[190px] px-2.5 py-[5px] align-top border-t border-l border-ink/10"
                         >
                           <div className="flex flex-col gap-0.5">
-                            {getAllForSlot(dateStr, slot.key).map((member) =>
-                              renderName(member, true),
+                            {getAllForSlot(dateStr, slot.key).map(({ member, category }) =>
+                              renderName(member, category, true),
                             )}
                           </div>
                         </td>
@@ -271,7 +276,7 @@ export default function MemberPlanning() {
                       >
                         <div className="flex flex-col gap-0.5">
                           {getCategoryMembers(dateStr, slot.key, cat.name).map((member) =>
-                            renderName(member, false),
+                            renderName(member, cat.name, false),
                           )}
                         </div>
                       </td>
@@ -339,14 +344,14 @@ export default function MemberPlanning() {
                           <p className="text-row text-ink/35">—</p>
                         ) : (
                           <div className="flex flex-col gap-1">
-                            {people.map((member) => (
+                            {people.map(({ member, category }) => (
                               <span
-                                key={member.id}
+                                key={`${category}-${member.id}`}
                                 className="inline-flex items-center gap-2 text-row font-semibold"
                               >
                                 <span
                                   className="w-2 h-2 rounded-full shrink-0"
-                                  style={{ background: memberColor(member) }}
+                                  style={{ background: categoryColor(category) }}
                                 />
                                 {member.first_name} {member.last_name}
                                 {isMe(member) && (

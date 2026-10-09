@@ -408,6 +408,21 @@ def test_member_crud_and_name_normalization(client, register, auth):
     assert client.get(f"/api/members/{mid}", headers=h).status_code == 404
 
 
+def test_a_member_needs_a_category(client, register, auth):
+    token, _ = register()
+    h = auth(token)
+    member = {"last_name": "doe", "first_name": "john"}
+    for categories in ([], [" "]):
+        r = client.post("/api/members", headers=h, json={**member, "categories": categories})
+        assert r.status_code == 400
+
+    created = client.post("/api/members", headers=h, json={**member, "categories": ["member"]})
+    mid = created.json()["id"]
+    r = client.put(f"/api/members/{mid}", headers=h, json={**member, "categories": []})
+    assert r.status_code == 400
+    assert client.get(f"/api/members/{mid}", headers=h).json()["categories"] == ["member"]
+
+
 def test_cross_tenant_isolation(client, register, auth):
     token_a, _ = register()
     token_b, _ = register()
@@ -1153,6 +1168,43 @@ def test_validating_never_removes_a_past_assignment_from_a_rebuilt_month(
     grid = client.get("/api/assignments", headers=h).json()
     assert grid[first_of_month]["morning"]["member"] == [member_id]
     assert grid[last_of_month]["morning"]["member"] == [member_id]
+
+
+def test_changing_the_primary_category_moves_future_assignments(client, member_session, auth):
+    admin_token, member_token, member_id = member_session()
+    h = auth(admin_token)
+    past, future, both = day(-3), day(2), day(4)
+    client.post(
+        "/api/assignments",
+        headers=h,
+        json={
+            past: {"morning": {"member": [member_id]}},
+            future: {"morning": {"member": [member_id]}},
+            both: {"morning": {"member": [member_id], "driver": [member_id]}},
+        },
+    )
+
+    member = client.get(f"/api/members/{member_id}", headers=h).json()
+    r = client.put(
+        f"/api/members/{member_id}", headers=h, json={**member, "categories": ["driver"]}
+    )
+    assert r.status_code == 200, r.text
+
+    grid = client.get("/api/assignments", headers=h).json()
+    assert grid[past]["morning"] == {"member": [member_id]}
+    assert grid[future]["morning"] == {"driver": [member_id]}
+    assert grid[both]["morning"] == {"driver": [member_id]}
+
+    r = client.post(
+        "/api/availability-submissions",
+        headers=auth(member_token),
+        json={
+            "dates": json.dumps(
+                [{"date": future, "time_slot": "morning"}, {"date": both, "time_slot": "morning"}]
+            )
+        },
+    )
+    assert r.json()["status"] == "no_changes"
 
 
 def test_ignoring_a_submission_leaves_the_assignments_alone(client, member_session, auth):

@@ -99,8 +99,9 @@ export default function Planning() {
     api.get('/availability-submissions').then((res) => setAllSubmissions(res.data || []));
   }, [currentMonth]);
 
-  const memberColor = (member) =>
-    getCategoryColor(categories, member?.categories?.[0] || '') || 'rgb(var(--color-ink))';
+  const categoryColor = (category) =>
+    getCategoryColor(categories, category || '') || 'rgb(var(--color-ink))';
+  const memberColor = (member) => categoryColor(member?.categories?.[0]);
   const ALL_CATEGORIES = categories.map((c) => c.name);
   const getCategory = (member) => member?.categories?.[0] || UNCATEGORIZED;
 
@@ -273,21 +274,26 @@ export default function Planning() {
     );
 
   const getSlotMembers = (dateStr, time_slot) =>
-    categories.flatMap((cat) => getCategoryMembers(dateStr, time_slot, cat.name));
+    categories.flatMap((cat) =>
+      getCategoryMembers(dateStr, time_slot, cat.name).map((member) => ({
+        member,
+        category: cat.name,
+      })),
+    );
 
   // `dot`: the grouped layout's header does not name the category.
-  const renderAssigned = (member, dateStr, time_slot, dot) => (
-    <div key={member.id} className="flex items-center gap-1">
+  const renderAssigned = (member, category, dateStr, time_slot, dot) => (
+    <div key={`${category}-${member.id}`} className="flex items-center gap-1">
       {dot && (
         <span
           className="w-1.5 h-1.5 shrink-0 rounded-full"
-          style={{ background: memberColor(member) }}
+          style={{ background: categoryColor(category) }}
         />
       )}
       <Link
         to={`/members/${member.id}`}
         className="flex-1 min-w-0 truncate text-meta font-semibold leading-tight hover:underline transition"
-        style={{ color: memberColor(member) }}
+        style={{ color: categoryColor(category) }}
       >
         {member.first_name} {member.last_name}
       </Link>
@@ -608,8 +614,8 @@ export default function Planning() {
                             style={cellBg}
                           >
                             <div className="flex flex-col gap-[3px]">
-                              {getSlotMembers(dateStr, time_slot).map((member) =>
-                                renderAssigned(member, dateStr, time_slot, true),
+                              {getSlotMembers(dateStr, time_slot).map(({ member, category }) =>
+                                renderAssigned(member, category, dateStr, time_slot, true),
                               )}
                             </div>
                           </td>
@@ -624,7 +630,7 @@ export default function Planning() {
                         >
                           <div className="flex flex-col gap-[3px]">
                             {getCategoryMembers(dateStr, time_slot, cat.name).map((member) =>
-                              renderAssigned(member, dateStr, time_slot, false),
+                              renderAssigned(member, cat.name, dateStr, time_slot, false),
                             )}
                           </div>
                         </td>
