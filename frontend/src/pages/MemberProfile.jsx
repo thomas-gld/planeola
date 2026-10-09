@@ -13,8 +13,10 @@ import OrgSwitcher from '../components/OrgSwitcher';
 
 function Section({ title, children, first }) {
   return (
-    <section className={`flex gap-10 px-7 py-6 ${first ? '' : 'border-t border-ink/[0.12]'}`}>
-      <div className="w-[268px] shrink-0">
+    <section
+      className={`flex flex-col md:flex-row gap-4 md:gap-10 px-5 sm:px-7 py-6 ${first ? '' : 'border-t border-ink/[0.12]'}`}
+    >
+      <div className="md:w-[268px] shrink-0">
         <h3 className="font-sans font-bold text-emphasis tracking-snug">{title}</h3>
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -220,7 +222,7 @@ export default function MemberProfile() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap border-b-2 border-ink bg-secondary-tint px-7 py-[13px]">
+      <div className="flex items-center gap-3 flex-wrap border-b-2 border-ink bg-secondary-tint px-5 sm:px-7 py-[13px]">
         <User size={19} className="shrink-0 text-secondary" />
         <span className="font-bold text-title tracking-snugger">
           {isNewMember
@@ -365,8 +367,10 @@ export default function MemberProfile() {
         </Section>
       </main>
 
-      <div className="no-print sticky bottom-24 sm:bottom-0 bg-surface border-t-2 border-ink px-4 sm:px-7 py-3 flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-4">
+      <div className="no-print sticky bottom-24 sm:bottom-0 bg-surface border-t-2 border-ink px-4 sm:px-7 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div
+          className={`flex-1 flex items-center gap-4 ${isNewMember ? '' : 'basis-full sm:basis-0'}`}
+        >
           {!isNewMember && (
             <>
               <button
@@ -386,7 +390,7 @@ export default function MemberProfile() {
         </div>
         <button
           onClick={() => navigate('/members')}
-          className="bg-transparent px-1.5 py-2.5 text-row font-semibold text-ink/55 hover:text-ink underline transition"
+          className="ml-auto bg-transparent px-1.5 py-2.5 text-row font-semibold text-ink/55 hover:text-ink underline transition"
         >
           Cancel
         </button>

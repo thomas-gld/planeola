@@ -13,8 +13,10 @@ import PasswordRequirements from '../components/PasswordRequirements';
 
 function Section({ title, children, first }) {
   return (
-    <section className={`flex gap-10 px-7 py-6 ${first ? '' : 'border-t border-ink/[0.12]'}`}>
-      <div className="w-[268px] shrink-0">
+    <section
+      className={`flex flex-col md:flex-row gap-4 md:gap-10 px-5 sm:px-7 py-6 ${first ? '' : 'border-t border-ink/[0.12]'}`}
+    >
+      <div className="md:w-[268px] shrink-0">
         <h3 className="font-sans font-bold text-emphasis tracking-snug">{title}</h3>
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -170,7 +172,7 @@ export default function MyProfile() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap border-b-2 border-ink bg-warning-tint px-7 py-[13px]">
+      <div className="flex items-center gap-3 flex-wrap border-b-2 border-ink bg-warning-tint px-5 sm:px-7 py-[13px]">
         <UserIcon size={19} className="shrink-0 text-warning" />
         <span className="font-bold text-title tracking-snugger">My profile</span>
       </div>
