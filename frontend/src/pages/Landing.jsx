@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Signature from '../components/Signature';
 
@@ -111,6 +112,14 @@ function PlainList({ items }) {
 }
 
 export default function Landing() {
+  useEffect(() => {
+    const previous = document.title;
+    document.title = 'Planeola · Semi-automated planning and member management';
+    return () => {
+      document.title = previous;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg">
       <header className="mx-auto max-w-5xl px-4 py-5 flex items-center justify-between gap-4">
