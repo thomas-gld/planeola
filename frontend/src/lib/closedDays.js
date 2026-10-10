@@ -1,14 +1,15 @@
 // 0 = Sunday, as in dayjs.
 export const DEFAULT_CLOSED_DAYS = [0, 6];
 
+// Labels are translation keys.
 export const WEEKDAYS = [
-  { num: 1, label: 'Monday' },
-  { num: 2, label: 'Tuesday' },
-  { num: 3, label: 'Wednesday' },
-  { num: 4, label: 'Thursday' },
-  { num: 5, label: 'Friday' },
-  { num: 6, label: 'Saturday' },
-  { num: 0, label: 'Sunday' },
+  { num: 1, label: 'weekdays.monday' },
+  { num: 2, label: 'weekdays.tuesday' },
+  { num: 3, label: 'weekdays.wednesday' },
+  { num: 4, label: 'weekdays.thursday' },
+  { num: 5, label: 'weekdays.friday' },
+  { num: 6, label: 'weekdays.saturday' },
+  { num: 0, label: 'weekdays.sunday' },
 ];
 
 // "[]" means never closed. Only a missing or invalid value falls back.

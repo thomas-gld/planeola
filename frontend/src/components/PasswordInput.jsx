@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function PasswordInput({ className = 'input-brutal-hairline-text', ...props }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative">
@@ -10,7 +12,7 @@ export default function PasswordInput({ className = 'input-brutal-hairline-text'
         type="button"
         onClick={() => setVisible(!visible)}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/50 hover:text-ink transition"
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible ? t('common.hide_password') : t('common.show_password')}
       >
         {visible ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import useFeedback from '../hooks/useFeedback';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
 import { isDayOpen } from '../lib/closedDays';
 import { DEFAULT_ORG_CONFIG, parseOrgConfig } from '../lib/orgConfig';
 import { hexToRgba } from '../lib/categories';
@@ -16,14 +16,13 @@ import SubmitAvailabilityModal from '../components/SubmitAvailabilityModal';
 import { computeCalendarDiff, slotCount } from '../lib/availabilityDiff';
 import { orgToday } from '../lib/timezone';
 
-dayjs.locale('en');
-
 // Past this many time slots, a day's slots scroll.
 const VISIBLE_SLOTS = 4;
 
 const shortSlotLabel = (slot) => (slot.label || slot.key).slice(0, 3).toUpperCase();
 
 export default function MyAvailability() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [member, setMember] = useState(null);
@@ -158,13 +157,11 @@ export default function MyAvailability() {
       setSubmissionMessage('');
 
       notify(
-        response.data.status === 'pending'
-          ? 'Availability sent. It now waits for validation.'
-          : 'Saved. Nothing changes in the schedule.',
+        response.data.status === 'pending' ? t('availability.sent') : t('availability.unchanged'),
       );
     } catch (error) {
       console.error(error);
-      notify('Could not send your availability. Try again.', 'error');
+      notify(t('availability.send_failed'), 'error');
     } finally {
       setSavingCalendar(false);
     }
@@ -178,10 +175,10 @@ export default function MyAvailability() {
       // The manager is emailed the change.
       const notesChanged = availabilityNotes !== originalNotes;
       await saveMember(notesChanged ? { previous_availability_notes: originalNotes } : {});
-      notify('Notes saved.');
+      notify(t('availability.notes_saved'));
     } catch (error) {
       console.error(error);
-      notify('Could not save your notes. Try again.', 'error');
+      notify(t('availability.notes_failed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -195,12 +192,12 @@ export default function MyAvailability() {
     return (
       <div className="flex items-center justify-center p-4 py-24">
         <div className="border-2 border-ink rounded-brutal-lg bg-accent shadow-brutal p-6 text-center max-w-md">
-          <p className="font-bold">No member record linked to your account.</p>
+          <p className="font-bold">{t('profile.no_member')}</p>
           <button
             onClick={() => navigate('/member-home')}
             className="btn-brutal-primary px-4 py-2 mt-4"
           >
-            Back to home
+            {t('profile.back_home')}
           </button>
         </div>
       </div>
@@ -240,7 +237,10 @@ export default function MyAvailability() {
         />
       )}
 
-      <PageHeader title="My availability" subtitle={`${member.first_name} ${member.last_name}`}>
+      <PageHeader
+        title={t('nav.my_availability')}
+        subtitle={`${member.first_name} ${member.last_name}`}
+      >
         <OrgSwitcher />
       </PageHeader>
 
@@ -253,12 +253,14 @@ export default function MyAvailability() {
           <button
             onClick={goToPrevMonth}
             disabled={inCurrentMonth}
+            aria-label={t('common.previous_month')}
             className="w-[30px] h-[30px] flex items-center justify-center disabled:opacity-35"
           >
             <ChevronLeft size={15} />
           </button>
           <button
             onClick={goToNextMonth}
+            aria-label={t('common.next_month')}
             className="w-[30px] h-[30px] flex items-center justify-center"
           >
             <ChevronRight size={15} />
@@ -272,6 +274,7 @@ export default function MyAvailability() {
           <button
             onClick={goToPrevMonth}
             disabled={inCurrentMonth}
+            aria-label={t('common.previous_month')}
             className="w-8 h-8 flex items-center justify-center disabled:opacity-35"
           >
             <ChevronLeft size={15} />
@@ -279,7 +282,11 @@ export default function MyAvailability() {
           <span className="px-3 text-sm font-bold tracking-snug whitespace-nowrap">
             {currentMonth.format('MMMM YYYY')}
           </span>
-          <button onClick={goToNextMonth} className="w-8 h-8 flex items-center justify-center">
+          <button
+            onClick={goToNextMonth}
+            aria-label={t('common.next_month')}
+            className="w-8 h-8 flex items-center justify-center"
+          >
             <ChevronRight size={15} />
           </button>
         </span>
@@ -288,7 +295,7 @@ export default function MyAvailability() {
       <main className="px-4 sm:px-7 py-4 sm:py-[18px] pb-32 flex flex-col gap-4">
         <div className="hidden sm:block">
           <div className="grid grid-cols-7 gap-1.5">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+            {t('common.weekdays_short', { returnObjects: true }).map((day, i) => (
               <div
                 key={day}
                 className={`text-center font-mono text-label font-bold uppercase tracking-caps-md pb-1.5 ${i >= 5 ? 'text-ink/30' : 'text-ink/45'}`}
@@ -335,7 +342,7 @@ export default function MyAvailability() {
                     className={`font-mono text-meta font-bold pl-0.5 ${isToday ? 'text-primary' : ''}`}
                   >
                     {date.date()}
-                    {isToday && ' · today'}
+                    {isToday && ` · ${t('common.today')}`}
                   </span>
                   {!isPast && (
                     <div className="flex-1 flex flex-col gap-1 max-h-[84px] overflow-y-auto scroll-thin">
@@ -371,7 +378,7 @@ export default function MyAvailability() {
           {weekGroups.map((group, gi) => (
             <React.Fragment key={gi}>
               <span className="font-mono text-label font-bold uppercase tracking-widest text-ink/45 mt-1">
-                Week of {group.label}
+                {t('availability.week_of', { date: group.label })}
               </span>
               {group.days.map((date) => {
                 const inactive = isInactiveDay(date);
@@ -387,7 +394,7 @@ export default function MyAvailability() {
                         {date.format('ddd D')}
                       </span>
                       <span className="flex-1 inline-flex items-center gap-1.5 font-mono text-label font-bold uppercase tracking-widest text-ink/40">
-                        <Lock size={12} /> Closed
+                        <Lock size={12} /> {t('common.closed')}
                       </span>
                     </div>
                   );
@@ -437,33 +444,35 @@ export default function MyAvailability() {
       </main>
 
       <div className="border-t-2 border-ink bg-surface px-4 sm:px-7 py-[18px] flex flex-col gap-2.5">
-        <span className="text-emphasis font-bold tracking-snug">General notes</span>
+        <span className="text-emphasis font-bold tracking-snug">{t('availability.notes')}</span>
         <textarea
           value={availabilityNotes}
           onChange={(e) => setAvailabilityNotes(e.target.value)}
-          placeholder="Away 18–24 August."
+          placeholder={t('availability.notes_placeholder')}
           className="input-brutal-hairline min-h-[44px] resize-none"
         />
       </div>
 
       <div className="no-print sticky bottom-24 sm:bottom-0 bg-surface border-t-2 border-ink px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
         <span className="flex-1 font-mono text-label font-bold uppercase tracking-wide text-ink/55">
-          {selectedSlots.length} slots
-          {pendingChangeCount > 0 ? ` · ${pendingChangeCount} changes` : ''}
+          {t('availability.slots', { count: selectedSlots.length })}
+          {pendingChangeCount > 0
+            ? ` · ${t('availability.changes', { count: pendingChangeCount })}`
+            : ''}
         </span>
         <button
           onClick={handleSave}
           disabled={saving}
           className="hidden sm:inline-flex border-2 border-ink/30 rounded-brutal bg-surface px-4 py-2.5 text-row font-bold hover:bg-muted transition"
         >
-          {saving ? 'Saving…' : 'Save notes'}
+          {saving ? t('common.saving') : t('availability.save_notes')}
         </button>
         <button
           onClick={handleSaveCalendar}
           disabled={savingCalendar}
           className="btn-brutal-primary px-[18px] py-3 sm:py-2.5 text-row"
         >
-          {savingCalendar ? 'Saving…' : 'Review and submit'} <ArrowRight size={15} />
+          {savingCalendar ? t('common.saving') : t('availability.review')} <ArrowRight size={15} />
         </button>
       </div>
     </div>

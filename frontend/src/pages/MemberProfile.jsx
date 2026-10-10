@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Save, Trash2, UserMinus, Check, User } from 'lucide-react';
 import api from '../lib/api';
@@ -72,6 +73,7 @@ function OptionChip({ checked, onChange, disabled = false, title, children }) {
 }
 
 export default function MemberProfile() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const isNewMember = id === 'new';
@@ -124,7 +126,7 @@ export default function MemberProfile() {
   const handleSubmit = async () => {
     if (saving) return;
     if (!member.categories?.length) {
-      notify('Choose a category.', 'error');
+      notify(t('member_profile.choose_category'), 'error');
       return;
     }
     setSaving(true);
@@ -137,7 +139,7 @@ export default function MemberProfile() {
         : await api.put(`/members/${id}`, data);
     } catch (error) {
       console.error(error);
-      notify(error.response?.data?.detail || 'Could not save the member.', 'error');
+      notify(error.response?.data?.detail || t('member_profile.save_failed'), 'error');
       setSaving(false);
       return;
     }
@@ -145,21 +147,21 @@ export default function MemberProfile() {
     if (isNewMember && createAccount && emailValid) {
       try {
         const invitation = (await api.post(`/members/${response.data.id}/create-account`)).data;
-        if (invitation.status === 'linked') notify('Member created and linked to your account.');
+        if (invitation.status === 'linked') notify(t('member_profile.created_linked'));
         else if (invitation.email_sent)
-          notify(`Member created. Invitation sent to ${invitation.email}.`);
+          notify(t('member_profile.created_invited', { email: invitation.email }));
         else
-          notify(
-            `Member created, but the email could not be sent to ${invitation.email}.`,
-            'warning',
-          );
+          notify(t('member_profile.created_email_failed', { email: invitation.email }), 'warning');
       } catch (error) {
         console.error(error);
         const detail = error.response?.data?.detail;
-        notify(`Member created, invitation not sent.${detail ? `\n${detail}` : ''}`, 'warning');
+        notify(
+          `${t('member_profile.created_not_invited')}${detail ? `\n${detail}` : ''}`,
+          'warning',
+        );
       }
     } else {
-      notify(isNewMember ? 'Member created.' : 'Changes saved.');
+      notify(isNewMember ? t('member_profile.created') : t('member_profile.saved'));
     }
 
     navigate('/members');
@@ -167,30 +169,31 @@ export default function MemberProfile() {
 
   const handleDelete = async () => {
     const ok = await confirm(
-      `Permanently delete ${member.first_name} ${member.last_name}? This cannot be undone.`,
-      { confirmLabel: 'Delete', danger: true },
+      t('members.confirm_delete', { name: `${member.first_name} ${member.last_name}` }),
+      { confirmLabel: t('common.delete'), danger: true },
     );
     if (!ok) return;
     try {
       await api.delete(`/members/${id}`);
-      notify('Member deleted.');
+      notify(t('member_profile.deleted'));
       navigate('/members');
     } catch (error) {
-      notify(error.response?.data?.detail || 'Could not delete the member.', 'error');
+      notify(error.response?.data?.detail || t('member_profile.delete_failed'), 'error');
     }
   };
 
   const handleResign = async () => {
-    const ok = await confirm(`Mark ${member.first_name} ${member.last_name} as resigned?`, {
-      confirmLabel: 'Mark resigned',
-    });
+    const ok = await confirm(
+      t('member_profile.confirm_resign', { name: `${member.first_name} ${member.last_name}` }),
+      { confirmLabel: t('member_profile.mark_resigned') },
+    );
     if (!ok) return;
     try {
       await api.put(`/members/${member.id}`, { ...member, resigned: true });
-      notify('Member marked as resigned.');
+      notify(t('member_profile.resigned'));
       navigate('/members');
     } catch (error) {
-      notify(error.response?.data?.detail || 'Could not update the member.', 'error');
+      notify(error.response?.data?.detail || t('member_profile.update_failed'), 'error');
     }
   };
 
@@ -202,7 +205,7 @@ export default function MemberProfile() {
       <div className="no-print flex items-center gap-3 border-b-2 border-ink bg-surface px-5 sm:px-7 py-4">
         <Link
           to="/members"
-          title="Back to members"
+          title={t('member_profile.back')}
           className="w-[34px] h-8 shrink-0 border border-ink/20 rounded-brutal-sm flex items-center justify-center hover:bg-secondary-tint transition"
         >
           <ArrowLeft size={16} />
@@ -210,11 +213,12 @@ export default function MemberProfile() {
         <div className="flex-1 min-w-0 flex flex-col gap-0.5">
           <h1 className="font-sans font-bold text-heading sm:text-2xl tracking-snugger truncate">
             {isNewMember
-              ? 'New member'
-              : `${member.first_name} ${member.last_name}`.trim() || 'Edit profile'}
+              ? t('member_profile.new_member')
+              : `${member.first_name} ${member.last_name}`.trim() || t('member_profile.edit')}
           </h1>
           <span className="font-mono text-label uppercase tracking-widest text-ink/50 truncate">
-            Members / {isNewMember ? 'new' : member.last_name || '…'}
+            {t('nav.members')} /{' '}
+            {isNewMember ? t('member_profile.breadcrumb_new') : member.last_name || '…'}
           </span>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
@@ -226,8 +230,8 @@ export default function MemberProfile() {
         <User size={19} className="shrink-0 text-secondary" />
         <span className="font-bold text-title tracking-snugger">
           {isNewMember
-            ? 'Create a member'
-            : `${member.first_name} ${member.last_name}`.trim().toUpperCase() || 'Member'}
+            ? t('member_profile.create_title')
+            : `${member.first_name} ${member.last_name}`.trim().toUpperCase() || t('roles.member')}
         </span>
         {!isNewMember && memberCategory && (
           <span className="inline-flex items-center gap-2 font-mono text-meta font-bold uppercase tracking-caps-md text-ink/55">
@@ -241,15 +245,15 @@ export default function MemberProfile() {
       </div>
 
       <main className="flex-1 bg-surface pb-24">
-        <Section first title="Personal information">
+        <Section first title={t('member_profile.personal')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-w-[620px]">
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                First name *
+                {t('member_profile.first_name_required')}
               </span>
               <input
                 type="text"
-                placeholder="First name"
+                placeholder={t('profile.first_name')}
                 value={member.first_name}
                 onChange={(e) => handleChange('first_name', e.target.value)}
                 className="input-brutal-hairline-text"
@@ -257,11 +261,11 @@ export default function MemberProfile() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Last name *
+                {t('member_profile.last_name_required')}
               </span>
               <input
                 type="text"
-                placeholder="Last name"
+                placeholder={t('profile.last_name')}
                 value={member.last_name}
                 onChange={(e) => handleChange('last_name', e.target.value)}
                 className="input-brutal-hairline-text uppercase"
@@ -269,11 +273,11 @@ export default function MemberProfile() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Email
+                {t('common.email')}
               </span>
               <input
                 type="email"
-                placeholder="email@example.com"
+                placeholder={t('member_profile.email_placeholder')}
                 value={member.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 className="input-brutal-hairline"
@@ -281,7 +285,7 @@ export default function MemberProfile() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Phone
+                {t('profile.phone')}
               </span>
               <input
                 type="tel"
@@ -294,7 +298,7 @@ export default function MemberProfile() {
           </div>
         </Section>
 
-        <Section title="Category">
+        <Section title={t('member_profile.category')}>
           <div className="flex flex-wrap gap-2.5">
             {categories.map((cat) => {
               const s = cat.name;
@@ -325,26 +329,26 @@ export default function MemberProfile() {
         </Section>
 
         {isNewMember && (
-          <Section title="Options">
+          <Section title={t('nav.options')}>
             <OptionChip
               checked={createAccount}
               onChange={() => setCreateAccount(!createAccount)}
               disabled={!emailValid}
-              title={emailValid ? undefined : 'Enter a valid email to send an invitation'}
+              title={emailValid ? undefined : t('member_profile.invite_disabled')}
             >
-              Send an invitation
+              {t('member_profile.send_invite')}
             </OptionChip>
           </Section>
         )}
 
-        <Section title="Notes">
+        <Section title={t('member_profile.notes')}>
           <div className="flex flex-col gap-3.5 max-w-[620px]">
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Availability
+                {t('member_profile.availability')}
               </span>
               <textarea
-                placeholder="e.g. Available Monday and Wednesday morning..."
+                placeholder={t('member_profile.availability_placeholder')}
                 value={member.availability_notes || ''}
                 onChange={(e) => handleChange('availability_notes', e.target.value)}
                 rows="3"
@@ -353,10 +357,10 @@ export default function MemberProfile() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Observations
+                {t('members.observations')}
               </span>
               <textarea
-                placeholder="Miscellaneous notes..."
+                placeholder={t('member_profile.observations_placeholder')}
                 value={member.observations || ''}
                 onChange={(e) => handleChange('observations', e.target.value)}
                 rows="3"
@@ -377,13 +381,13 @@ export default function MemberProfile() {
                 onClick={handleDelete}
                 className="inline-flex items-center gap-1.5 text-danger text-sm font-semibold hover:underline"
               >
-                <Trash2 size={15} /> Delete
+                <Trash2 size={15} /> {t('common.delete')}
               </button>
               <button
                 onClick={handleResign}
                 className="inline-flex items-center gap-1.5 text-ink/65 text-sm font-semibold hover:underline"
               >
-                <UserMinus size={15} /> Mark resigned
+                <UserMinus size={15} /> {t('member_profile.mark_resigned')}
               </button>
             </>
           )}
@@ -392,14 +396,19 @@ export default function MemberProfile() {
           onClick={() => navigate('/members')}
           className="ml-auto bg-transparent px-1.5 py-2.5 text-row font-semibold text-ink/55 hover:text-ink underline transition"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSubmit}
           disabled={saving}
           className="inline-flex items-center gap-2 border-2 border-ink rounded-brutal-sm bg-secondary-tint shadow-brutal-xs px-[18px] py-2.5 text-row font-bold disabled:opacity-60 text-secondary-deep"
         >
-          <Save size={15} /> {saving ? 'Saving…' : isNewMember ? 'Create member' : 'Save changes'}
+          <Save size={15} />{' '}
+          {saving
+            ? t('common.saving')
+            : isNewMember
+              ? t('member_profile.create')
+              : t('profile.save')}
         </button>
       </div>
     </div>

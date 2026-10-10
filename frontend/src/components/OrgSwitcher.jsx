@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Check, Plus, List, Mail } from 'lucide-react';
 import useOrgAccounts from '../hooks/useOrgAccounts';
@@ -13,6 +14,7 @@ import usePendingInvites from '../hooks/usePendingInvites';
 // Hidden until the session has an organization: the home page has its own picker.
 // `showEmail`: the login email above the button, on the home pages.
 export default function OrgSwitcher({ showEmail = false, inMobileHeader = false }) {
+  const { t } = useTranslation();
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const { accounts, current, email, switching, switchTo } = useOrgAccounts();
@@ -41,7 +43,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
     >
       {showEmail && email && (
         <span
-          title="Your login email"
+          title={t('org_switcher.login_email')}
           className="font-mono text-meta text-ink/55 truncate max-w-[220px] sm:max-w-[280px]"
         >
           {email}
@@ -55,9 +57,9 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
             ? 'h-[38px] max-w-full border-2 border-ink rounded-brutal-sm text-sm'
             : 'py-2 border border-ink/20 rounded-brutal text-row max-w-[160px] sm:max-w-[220px]'
         }`}
-        title="Switch organization"
+        title={t('org_switcher.switch')}
       >
-        <span className="truncate">{current?.name || 'Organization'}</span>
+        <span className="truncate">{current?.name || t('org_switcher.organization')}</span>
         <ChevronDown size={14} className="shrink-0 text-ink/45" />
         <CountBadge count={invites.length} />
       </button>
@@ -67,7 +69,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
           className={`absolute ${inMobileHeader ? 'left-0' : 'right-0'} top-full mt-2 w-64 border-2 border-ink rounded-brutal bg-surface shadow-brutal overflow-hidden`}
         >
           <div className="px-3 py-2 font-mono text-xs font-bold uppercase tracking-widest text-ink/50 border-b-2 border-ink">
-            Your organizations
+            {t('orgs.your_orgs')}
           </div>
           {groupByRole(accounts).map((group) => (
             <div key={group.role}>
@@ -90,7 +92,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
                   >
                     <RoleBadge role={a.role} />
                     <span className="flex-1 min-w-0 font-bold text-sm truncate">
-                      {a.name || `Organization #${a.account_id}`}
+                      {a.name || t('orgs.fallback_name', { id: a.account_id })}
                     </span>
                     {isCurrent && <Check size={16} className="text-primary shrink-0" />}
                   </button>
@@ -107,7 +109,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
             className="w-full flex items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hover:bg-muted transition border-b border-ink/10"
           >
             <Mail size={14} />
-            Pending invitations
+            {t('invites.title')}
             {invites.length > 0 && (
               <span className="ml-auto min-w-[20px] h-5 px-1 rounded-full bg-danger text-surface text-label flex items-center justify-center">
                 {invites.length}
@@ -122,7 +124,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
             className="w-full flex items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hover:bg-muted transition"
           >
             <List size={14} />
-            See all
+            {t('org_switcher.see_all')}
           </button>
           <button
             onClick={() => {
@@ -132,7 +134,7 @@ export default function OrgSwitcher({ showEmail = false, inMobileHeader = false 
             className="w-full flex items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide text-primary hover:bg-primary/10 transition border-t border-ink/10"
           >
             <Plus size={14} />
-            Create organization
+            {t('orgs.create')}
           </button>
         </div>
       )}

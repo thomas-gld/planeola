@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CircleCheck, CircleX, TriangleAlert, X } from 'lucide-react';
 import { FeedbackContext } from '../contexts/feedback';
 
@@ -9,23 +10,27 @@ const TONES = {
 };
 
 export default function FeedbackProvider({ children }) {
+  const { t } = useTranslation();
   const [toasts, setToasts] = useState([]);
   const [dialog, setDialog] = useState(null);
   const nextId = useRef(0);
 
-  const dismiss = useCallback((id) => setToasts((t) => t.filter((toast) => toast.id !== id)), []);
+  const dismiss = useCallback(
+    (id) => setToasts((list) => list.filter((toast) => toast.id !== id)),
+    [],
+  );
 
   const notify = useCallback(
     (message, tone = 'success') => {
       const id = ++nextId.current;
-      setToasts((t) => [...t, { id, message, tone }]);
+      setToasts((list) => [...list, { id, message, tone }]);
       setTimeout(() => dismiss(id), tone === 'success' ? 3500 : 6000);
     },
     [dismiss],
   );
 
   const confirm = useCallback(
-    (message, { confirmLabel = 'Confirm', danger = false } = {}) =>
+    (message, { confirmLabel, danger = false } = {}) =>
       new Promise((resolve) => setDialog({ message, confirmLabel, danger, resolve })),
     [],
   );
@@ -54,7 +59,7 @@ export default function FeedbackProvider({ children }) {
               <p className="flex-1 text-row font-semibold whitespace-pre-line">{message}</p>
               <button
                 onClick={() => dismiss(id)}
-                aria-label="Dismiss"
+                aria-label={t('common.dismiss')}
                 className="shrink-0 text-ink/40 hover:text-ink transition"
               >
                 <X size={15} />
@@ -81,14 +86,14 @@ export default function FeedbackProvider({ children }) {
                 onClick={() => close(false)}
                 className="border-2 border-ink/30 rounded-brutal bg-surface px-4 py-2 text-row font-bold hover:bg-muted transition"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 autoFocus
                 onClick={() => close(true)}
                 className={`${dialog.danger ? 'btn-brutal-danger' : 'btn-brutal-primary'} px-4 py-2 text-row`}
               >
-                {dialog.confirmLabel}
+                {dialog.confirmLabel || t('common.confirm')}
               </button>
             </div>
           </div>

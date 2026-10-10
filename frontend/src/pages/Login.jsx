@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +9,7 @@ import VerifyCodeForm from '../components/VerifyCodeForm';
 import { applyIdentitySession } from '../lib/session';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -33,7 +35,7 @@ export default function Login() {
       await applyIdentitySession(response.data, { login, navigate });
     } catch (err) {
       console.error(err);
-      const errorMessage = err.response?.data?.detail || err.message || 'Login error.';
+      const errorMessage = err.response?.data?.detail || err.message || t('login.error');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -42,7 +44,7 @@ export default function Login() {
 
   if (pendingEmail) {
     return (
-      <AuthLayout title="Confirm your email">
+      <AuthLayout title={t('auth.confirm_email')}>
         <VerifyCodeForm
           email={pendingEmail}
           onVerified={(body) => applyIdentitySession(body, { login, navigate })}
@@ -56,11 +58,11 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout title="Sign in">
+    <AuthLayout title={t('login.title')}>
       <form onSubmit={handleLogin} className="space-y-4">
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Email
+            {t('common.email')}
           </span>
           <input
             type="email"
@@ -69,13 +71,13 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="input-brutal-hairline"
-            placeholder="you@example.com"
+            placeholder={t('common.email_placeholder')}
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Password
+            {t('auth.password')}
           </span>
           <div className="relative">
             <input
@@ -84,13 +86,13 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="input-brutal-hairline-text pr-12"
-              placeholder="Enter your password"
+              placeholder={t('login.password_placeholder')}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/50 hover:text-ink transition"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t('common.hide_password') : t('common.show_password')}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -104,12 +106,12 @@ export default function Login() {
           disabled={loading}
           className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm mt-0.5"
         >
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? t('login.submitting') : t('login.submit')}
         </button>
 
         <AuthFooter>
-          <AuthLink to="/forgot-password">Forgot password?</AuthLink>
-          <AuthLink to="/register">Create an account</AuthLink>
+          <AuthLink to="/forgot-password">{t('login.forgot_password')}</AuthLink>
+          <AuthLink to="/register">{t('login.create_account')}</AuthLink>
         </AuthFooter>
       </form>
     </AuthLayout>

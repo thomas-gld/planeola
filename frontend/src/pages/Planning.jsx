@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import useFeedback from '../hooks/useFeedback';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ChevronDown, X, Lock, LockOpen } from 'lucide-react';
 import AppLayout from '../components/AppLayout';
@@ -15,13 +15,13 @@ import { timeSlotLabel, shouldGroupPlanning } from '../lib/timeSlots';
 import { DEFAULT_ORG_CONFIG, parseOrgConfig } from '../lib/orgConfig';
 import { computeSubmissionDiffs } from '../lib/availabilityDiff';
 import { orgToday } from '../lib/timezone';
-dayjs.locale('en');
 
 const VIEW_KEY = 'planning_view';
 
 const UNCATEGORIZED = 'uncategorized';
 
 export default function Planning() {
+  const { t } = useTranslation();
   const { notify, confirm } = useFeedback();
   const [members, setMembers] = useState([]);
   const [config, setConfig] = useState(DEFAULT_ORG_CONFIG);
@@ -80,7 +80,7 @@ export default function Planning() {
     } catch (error) {
       console.error(error);
       notify(
-        `Could not change this day.\n${error.response?.data?.detail || error.message}`,
+        `${t('planning.toggle_failed')}\n${error.response?.data?.detail || error.message}`,
         'error',
       );
     } finally {
@@ -175,10 +175,14 @@ export default function Planning() {
 
   const confirmAndRemove = async (dateStr, time_slot, member) => {
     const slotLabel = timeSlotLabel(timeSlots, time_slot);
-    const dateLabel = dayjs(dateStr).format('MMMM D');
+    const dateLabel = dayjs(dateStr).format(t('formats.day_month'));
     const ok = await confirm(
-      `Remove ${member.first_name} ${member.last_name} from the ${slotLabel} of ${dateLabel}?`,
-      { confirmLabel: 'Remove', danger: true },
+      t('planning.confirm_remove', {
+        name: `${member.first_name} ${member.last_name}`,
+        slot: slotLabel,
+        date: dateLabel,
+      }),
+      { confirmLabel: t('planning.remove'), danger: true },
     );
     if (!ok) return;
     removeAssignment(dateStr, time_slot, member.id);
@@ -244,7 +248,7 @@ export default function Planning() {
       await api.get('/assignments').then((res) => setAllAssignments(res.data || {}));
     } catch (error) {
       console.error(error);
-      notify('Could not validate the submission.', 'error');
+      notify(t('home.validate_failed'), 'error');
     }
   };
 
@@ -254,7 +258,7 @@ export default function Planning() {
       await refreshSubmissions();
     } catch (error) {
       console.error(error);
-      notify('Could not ignore the submission.', 'error');
+      notify(t('home.ignore_failed'), 'error');
     }
   };
 
@@ -299,8 +303,10 @@ export default function Planning() {
       </Link>
       <button
         type="button"
-        title="Remove from this slot"
-        aria-label={`Remove ${member.first_name} ${member.last_name} from this slot`}
+        title={t('planning.remove_title')}
+        aria-label={t('planning.remove_label', {
+          name: `${member.first_name} ${member.last_name}`,
+        })}
         className="w-4 h-4 shrink-0 border border-ink/20 rounded-[5px] bg-surface text-ink/35 hover:bg-danger hover:text-surface hover:border-danger flex items-center justify-center transition"
         onClick={(e) => {
           e.preventDefault();
@@ -340,20 +346,23 @@ export default function Planning() {
     <AppLayout>
       <div className="flex-1 flex flex-col">
         <PageHeader
-          title="Planning"
-          subtitle={`${currentMonth.format('MMMM YYYY')} · ${totalMonthHours} h assigned`}
+          title={t('nav.planning')}
+          subtitle={t('planning.subtitle', {
+            month: currentMonth.format('MMMM YYYY'),
+            hours: totalMonthHours,
+          })}
         >
           <OrgSwitcher />
           <div className="flex items-center gap-1.5">
             <button
-              title="Previous month"
+              title={t('common.previous_month')}
               onClick={() => goToMonth(currentMonth.subtract(1, 'month'))}
               className="w-[34px] h-[34px] border border-ink/20 rounded-brutal-sm bg-surface flex items-center justify-center hover:bg-primary-tint transition"
             >
               <ChevronLeft size={15} />
             </button>
             <button
-              title="Next month"
+              title={t('common.next_month')}
               onClick={() => goToMonth(currentMonth.add(1, 'month'))}
               className="w-[34px] h-[34px] border border-ink/20 rounded-brutal-sm bg-surface flex items-center justify-center hover:bg-primary-tint transition"
             >
@@ -377,14 +386,14 @@ export default function Planning() {
         />
 
         <div className="border-b-2 border-ink bg-surface px-7 py-3 flex items-center gap-3.5 flex-wrap">
-          <span className="text-row font-bold shrink-0">Member to assign</span>
+          <span className="text-row font-bold shrink-0">{t('planning.member_to_assign')}</span>
           <div className="relative min-w-[240px]">
             <select
               className="select-brutal rounded-brutal-sm pl-8"
               value={selectedId || ''}
               onChange={(e) => setSelectedId(e.target.value)}
             >
-              <option value="">— Choose —</option>
+              <option value="">{t('planning.choose')}</option>
               {sortedMembers
                 .filter((member) => !member.resigned)
                 .map((member) => (
@@ -419,13 +428,13 @@ export default function Planning() {
             {[
               {
                 key: 'by-category',
-                label: 'By category',
-                title: `One column per category (${gridCols} columns)`,
+                label: t('planning.by_category'),
+                title: t('planning.by_category_title', { count: gridCols }),
               },
               {
                 key: 'grouped',
-                label: 'Grouped',
-                title: `One column per time slot (${timeSlots.length} columns)`,
+                label: t('planning.grouped'),
+                title: t('planning.grouped_title', { count: timeSlots.length }),
               },
             ].map((v) => {
               const active = (v.key === 'grouped') === compact;
@@ -466,7 +475,7 @@ export default function Planning() {
                   rowSpan={compact ? 1 : 2}
                   className="w-[118px] sticky left-0 z-20 bg-surface px-5 py-2.5 text-left align-middle font-sans text-row font-bold tracking-snug border-b-2 border-ink"
                 >
-                  Date
+                  {t('common.date')}
                 </th>
                 {timeSlots.map((slot) => (
                   <th
@@ -517,13 +526,13 @@ export default function Planning() {
                       <td colSpan={totalCols} className={`bg-well px-7 py-[7px] ${topBorderClass}`}>
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-meta uppercase tracking-caps-md text-ink/45">
-                            {day.format('ddd MM/DD')}
+                            {day.format(t('formats.weekday_numeric'))}
                           </span>
                           <button
                             onClick={() => toggleRow(dateStr)}
                             className="border border-ink/30 rounded-brutal-sm bg-surface px-2.5 py-0.5 font-mono text-label font-bold uppercase tracking-caps text-ink/60"
                           >
-                            Show
+                            {t('common.show')}
                           </button>
                         </div>
                       </td>
@@ -543,7 +552,7 @@ export default function Planning() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-xs font-bold uppercase tracking-[0.04em]">
-                          {day.format('ddd MM/DD')}
+                          {day.format(t('formats.weekday_numeric'))}
                         </span>
                         <span className="flex items-center gap-1.5 shrink-0">
                           <button
@@ -551,11 +560,13 @@ export default function Planning() {
                             disabled={togglingDay !== null}
                             className="text-ink/30 hover:text-ink transition disabled:opacity-40"
                             title={
-                              isInactive
-                                ? 'Closed — click to reopen this day'
-                                : 'Open — click to close this day'
+                              isInactive ? t('planning.closed_title') : t('planning.open_title')
                             }
-                            aria-label={isInactive ? `Reopen ${dateStr}` : `Close ${dateStr}`}
+                            aria-label={
+                              isInactive
+                                ? t('planning.reopen_label', { date: dateStr })
+                                : t('planning.close_label', { date: dateStr })
+                            }
                           >
                             {isInactive ? <Lock size={13} /> : <LockOpen size={13} />}
                           </button>
@@ -563,9 +574,9 @@ export default function Planning() {
                             <button
                               onClick={() => toggleRow(dateStr)}
                               className="font-mono text-micro uppercase tracking-caps text-ink/40 hover:text-ink transition"
-                              title="Collapse this day"
+                              title={t('planning.collapse')}
                             >
-                              Hide
+                              {t('common.hide')}
                             </button>
                           )}
                         </span>
@@ -595,7 +606,7 @@ export default function Planning() {
 
                       {isInactive && (
                         <span className="inline-block mt-2 font-mono text-micro font-bold uppercase tracking-caps-md text-ink/40">
-                          Closed
+                          {t('common.closed')}
                         </span>
                       )}
                     </td>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Star, Plus, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
@@ -11,6 +12,7 @@ import usePendingInvites from '../hooks/usePendingInvites';
 import { groupByRole } from '../lib/accounts';
 
 export default function OrganizationsList() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [accounts, setAccounts] = useState([]);
   const [defaultUserId, setDefaultUserId] = useState(null);
@@ -64,7 +66,7 @@ export default function OrganizationsList() {
   return (
     <div className="space-y-4">
       {accounts.length === 0 ? (
-        <p className="text-center text-sm text-ink/60">No organizations yet.</p>
+        <p className="text-center text-sm text-ink/60">{t('orgs.none')}</p>
       ) : (
         groupByRole(accounts).map((group) => (
           <div key={group.role} className="space-y-3">
@@ -83,7 +85,7 @@ export default function OrganizationsList() {
               >
                 <span
                   onClick={(e) => toggleDefault(a, e)}
-                  title={defaultUserId === a.user_id ? 'Default organization' : 'Set as default'}
+                  title={defaultUserId === a.user_id ? t('orgs.is_default') : t('orgs.set_default')}
                   className="shrink-0 text-accent hover:scale-110 transition"
                 >
                   <Star
@@ -93,7 +95,7 @@ export default function OrganizationsList() {
                   />
                 </span>
                 <span className="min-w-0 flex-1 font-bold truncate">
-                  {a.name || `Organization #${a.account_id}`}
+                  {a.name || t('orgs.fallback_name', { id: a.account_id })}
                 </span>
                 <RoleBadge role={a.role} />
               </button>
@@ -109,7 +111,7 @@ export default function OrganizationsList() {
           hover:border-ink hover:text-ink hover:bg-muted transition"
       >
         <Plus size={16} />
-        Create organization
+        {t('orgs.create')}
       </button>
 
       <button
@@ -119,7 +121,7 @@ export default function OrganizationsList() {
           hover:bg-primary/15 transition"
       >
         <Mail size={16} />
-        Pending invitations
+        {t('invites.title')}
         <CountBadge count={invites.length} />
       </button>
 

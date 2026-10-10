@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CalendarDays, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import api from '../lib/api';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
 import Loading from '../components/Loading';
 import PageHeader from '../components/PageHeader';
 import OrgSwitcher from '../components/OrgSwitcher';
@@ -13,9 +13,8 @@ import { shouldGroupPlanning } from '../lib/timeSlots';
 import { DEFAULT_ORG_CONFIG, parseOrgConfig } from '../lib/orgConfig';
 import { orgToday } from '../lib/timezone';
 
-dayjs.locale('en');
-
 export default function MemberPlanning() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [holidays, setHolidays] = useState([]);
   const [members, setMembers] = useState([]);
@@ -114,7 +113,9 @@ export default function MemberPlanning() {
       >
         {member.first_name} {member.last_name}
       </span>
-      {isMe(member) && <span className="font-mono text-micro uppercase text-primary">you</span>}
+      {isMe(member) && (
+        <span className="font-mono text-micro uppercase text-primary">{t('common.you')}</span>
+      )}
     </span>
   );
 
@@ -139,7 +140,7 @@ export default function MemberPlanning() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <PageHeader title="Planning" subtitle="Read-only">
+      <PageHeader title={t('nav.planning')} subtitle={t('member_planning.read_only')}>
         <OrgSwitcher />
       </PageHeader>
 
@@ -152,12 +153,14 @@ export default function MemberPlanning() {
           <button
             onClick={goToPrevMonth}
             disabled={inCurrentMonth}
+            aria-label={t('common.previous_month')}
             className="w-[30px] h-[30px] flex items-center justify-center disabled:opacity-35"
           >
             <ChevronLeft size={15} />
           </button>
           <button
             onClick={goToNextMonth}
+            aria-label={t('common.next_month')}
             className="w-[30px] h-[30px] flex items-center justify-center"
           >
             <ChevronRight size={15} />
@@ -173,7 +176,7 @@ export default function MemberPlanning() {
                 rowSpan={compact ? 1 : 2}
                 className="w-[108px] sticky left-0 z-10 bg-surface px-7 py-[11px] text-left align-middle font-sans text-row font-bold tracking-snug border-b-2 border-ink whitespace-nowrap"
               >
-                Date
+                {t('common.date')}
               </th>
               {timeSlots.map((slot) => (
                 <th
@@ -226,7 +229,7 @@ export default function MemberPlanning() {
                       className="px-3.5 py-2 border-t border-l border-ink/10 bg-closed"
                     >
                       <span className="inline-flex items-center gap-1.5 font-mono text-label font-bold uppercase tracking-wide text-ink/40">
-                        <Lock size={11} /> Closed
+                        <Lock size={11} /> {t('common.closed')}
                       </span>
                     </td>
                   </tr>
@@ -251,7 +254,7 @@ export default function MemberPlanning() {
                     }}
                   >
                     {day.format('ddd DD')}
-                    {isToday && ' · today'}
+                    {isToday && ` · ${t('common.today')}`}
                   </td>
 
                   {timeSlots.flatMap((slot) => {
@@ -303,7 +306,7 @@ export default function MemberPlanning() {
                     {label}
                   </span>
                   <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-label font-bold uppercase tracking-wide text-ink/40">
-                    <Lock size={11} /> Closed
+                    <Lock size={11} /> {t('common.closed')}
                   </span>
                 </div>
               );
@@ -324,7 +327,7 @@ export default function MemberPlanning() {
                     className={`font-mono text-meta font-bold uppercase tracking-wide ${isToday ? 'text-primary' : ''}`}
                   >
                     {day.format('ddd DD')}
-                    {isToday && ' · today'}
+                    {isToday && ` · ${t('common.today')}`}
                   </span>
                 </div>
                 <div className="px-3 py-2.5 flex flex-col gap-2.5">
@@ -356,7 +359,7 @@ export default function MemberPlanning() {
                                 {member.first_name} {member.last_name}
                                 {isMe(member) && (
                                   <span className="font-mono text-micro uppercase text-primary">
-                                    you
+                                    {t('common.you')}
                                   </span>
                                 )}
                               </span>

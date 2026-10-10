@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 // `key` is what Assignment.time_slot stores, so a label can be renamed freely.
 const PALETTE = ['#2563eb', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#db2777', '#ca8a04'];
 const timeSlotColor = (index) => PALETTE[index % PALETTE.length];
@@ -47,7 +49,7 @@ export const shouldGroupPlanning = (timeSlots, categories) =>
   timeSlots.length * categories.length > 12;
 
 export function formatSlotList(timeSlots, slotKeys) {
-  if (slotKeys.length === timeSlots.length) return 'full day';
+  if (slotKeys.length === timeSlots.length) return i18n.t('common.full_day');
   return [...slotKeys]
     .sort()
     .map((key) => timeSlotLabel(timeSlots, key))

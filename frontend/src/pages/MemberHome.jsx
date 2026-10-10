@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { CalendarDays, CalendarCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
 import { timeSlotLabel } from '../lib/timeSlots';
 import { DEFAULT_ORG_CONFIG, parseOrgConfig } from '../lib/orgConfig';
 import { dateIn, orgToday } from '../lib/timezone';
@@ -13,9 +13,8 @@ import Signature from '../components/Signature';
 import HomeHeader from '../components/HomeHeader';
 import AppLayout from '../components/AppLayout';
 
-dayjs.locale('en');
-
 export default function MemberHome() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [myAssignments, setMyAssignments] = useState([]);
   const [teammates, setTeammates] = useState([]);
@@ -123,15 +122,20 @@ export default function MemberHome() {
       );
       const monthsToCheck = [today, today.add(1, 'month')];
       const missing = monthsToCheck.find((m) => !coveredMonths.has(m.format('YYYY-MM')));
-      if (missing) missingMonthLabel = `${missing.format('MMMM')} not filled in.`;
+      if (missing)
+        missingMonthLabel = t('member_home.missing_month', { month: missing.format('MMMM') });
     } catch {
       // ignore
     }
   }
 
   const submissionStatusLabel = pendingSubmission
-    ? `Sent ${dayjs(dateIn(timezone, new Date(pendingSubmission.created_at))).format('MMMM D')} — pending`
-    : 'None pending';
+    ? t('member_home.sent_pending', {
+        date: dayjs(dateIn(timezone, new Date(pendingSubmission.created_at))).format(
+          t('formats.day_month'),
+        ),
+      })
+    : t('member_home.none_pending');
 
   return (
     <AppLayout>
@@ -142,29 +146,29 @@ export default function MemberHome() {
           <div className="border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal-sm overflow-hidden">
             <div className="px-[18px] py-4 sm:px-6 sm:py-5 bg-warning-tint border-b-2 border-ink">
               <p className="font-mono text-label sm:text-meta font-bold uppercase tracking-[0.16em] mb-1.5 sm:mb-2 text-warning">
-                Your next session
+                {t('member_home.next_session')}
               </p>
               <p className="font-sans font-bold text-title sm:text-headline tracking-snugger leading-[1.25]">
-                {dayjs(nextAssignment.date).format('dddd, MMMM D, YYYY')} —{' '}
+                {dayjs(nextAssignment.date).format(t('formats.full_date_year'))} —{' '}
                 {timeSlotLabel(timeSlots, nextAssignment.time_slot)}
               </p>
             </div>
             {sortedTeammates.length > 0 && (
               <div className="px-[18px] py-3.5 sm:px-6 sm:py-[18px]">
                 <p className="font-mono text-label sm:text-meta font-bold uppercase tracking-[0.16em] text-ink/45 mb-2 sm:mb-2.5">
-                  With
+                  {t('member_home.with')}
                 </p>
                 <div className="flex flex-col sm:grid sm:grid-cols-2 gap-1.5 sm:gap-x-6 sm:gap-y-2">
-                  {sortedTeammates.map((t) => (
+                  {sortedTeammates.map((mate) => (
                     <span
-                      key={t.id}
+                      key={mate.id}
                       className="inline-flex items-center gap-2 sm:gap-2.5 text-sm sm:text-emphasis font-semibold"
                     >
                       <span
                         className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0"
-                        style={{ background: memberColor(t) }}
+                        style={{ background: memberColor(mate) }}
                       />
-                      {t.first_name} {t.last_name}
+                      {mate.first_name} {mate.last_name}
                     </span>
                   ))}
                 </div>
@@ -178,18 +182,18 @@ export default function MemberHome() {
             <div className="flex items-center gap-3 px-5 sm:px-[22px] py-3.5 border-b-2 border-ink bg-primary-tint text-primary">
               <CalendarDays size={19} />
               <span className="font-bold text-title tracking-snugger text-ink">
-                Your upcoming sessions
+                {t('member_home.upcoming')}
               </span>
               <Link
                 to="/member-planning"
                 className="ml-auto font-mono text-label font-bold uppercase tracking-widest underline"
               >
-                Full planning
+                {t('home.full_planning')}
               </Link>
             </div>
             <div className="px-5 sm:px-[22px] pb-2 pt-1">
               {upcoming.length === 0 ? (
-                <p className="py-4 text-sm text-ink/45">No other sessions.</p>
+                <p className="py-4 text-sm text-ink/45">{t('member_home.no_more')}</p>
               ) : (
                 upcoming.map((a, i) => (
                   <div
@@ -197,14 +201,14 @@ export default function MemberHome() {
                     className={`flex items-baseline gap-3.5 py-[13px] ${i < upcoming.length - 1 ? 'border-b border-ink/[0.08]' : ''}`}
                   >
                     <span className="w-[74px] sm:w-[88px] font-mono text-row font-bold shrink-0">
-                      {dayjs(a.date).format('MMM D')}
+                      {dayjs(a.date).format(t('formats.short_day_month'))}
                     </span>
                     <span className="flex-1 text-emphasis">
                       {dayjs(a.date).format('dddd')} — {timeSlotLabel(timeSlots, a.time_slot)}
                     </span>
                     {a.othersCount > 0 && (
                       <span className="text-row text-ink/50 shrink-0">
-                        with {a.othersCount} other{a.othersCount > 1 ? 's' : ''}
+                        {t('member_home.with_others', { count: a.othersCount })}
                       </span>
                     )}
                   </div>
@@ -217,12 +221,12 @@ export default function MemberHome() {
             <div className="flex items-center gap-3 px-5 py-3.5 border-b-2 border-ink bg-secondary-tint text-secondary">
               <CalendarCheck size={19} />
               <span className="font-bold text-title tracking-snugger text-ink">
-                My availability
+                {t('nav.my_availability')}
               </span>
             </div>
             <div className="px-5 py-[18px] pb-5">
               <p className="font-mono text-label font-bold uppercase tracking-widest text-ink/45 mb-1">
-                Last submission
+                {t('member_home.last_submission')}
               </p>
               <p className="text-emphasis font-semibold mb-3.5">{submissionStatusLabel}</p>
               {missingMonthLabel && (
@@ -232,7 +236,7 @@ export default function MemberHome() {
                 to="/my-availability"
                 className="inline-flex items-center gap-2 border-2 border-ink rounded-brutal-sm bg-secondary text-surface shadow-brutal-xs px-4 py-2.5 text-sm font-bold"
               >
-                Update my availability
+                {t('member_home.update_availability')}
                 <ChevronRight size={16} />
               </Link>
             </div>

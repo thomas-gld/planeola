@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import AuthLayout, { AuthLink, AuthNote, AuthFooter } from '../components/AuthLayout';
 
 export default function ForgottenPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,25 +25,22 @@ export default function ForgottenPassword() {
   };
 
   return (
-    <AuthLayout title={submitted ? 'Check your inbox' : 'Forgot password'}>
+    <AuthLayout title={submitted ? t('forgot.sent_title') : t('forgot.title')}>
       {submitted ? (
         <div className="space-y-[18px]">
-          <AuthNote>
-            If that email has an account, a link to choose a new password has been sent. It expires
-            in 30 minutes.
-          </AuthNote>
+          <AuthNote>{t('forgot.sent')}</AuthNote>
           <Link
             to="/login"
             className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm"
           >
-            Back to login
+            {t('auth.back_to_login')}
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="flex flex-col gap-1.5">
             <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-              Email
+              {t('common.email')}
             </span>
             <input
               type="email"
@@ -49,7 +48,7 @@ export default function ForgottenPassword() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="input-brutal-hairline"
-              placeholder="you@example.com"
+              placeholder={t('common.email_placeholder')}
             />
           </label>
 
@@ -58,11 +57,11 @@ export default function ForgottenPassword() {
             disabled={loading}
             className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm mt-0.5"
           >
-            {loading ? 'Sending…' : 'Send'}
+            {loading ? t('common.sending') : t('forgot.submit')}
           </button>
 
           <AuthFooter>
-            <AuthLink to="/login">Back to login</AuthLink>
+            <AuthLink to="/login">{t('auth.back_to_login')}</AuthLink>
           </AuthFooter>
         </form>
       )}

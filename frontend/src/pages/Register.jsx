@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +11,7 @@ import PasswordInput from '../components/PasswordInput';
 import PasswordRequirements from '../components/PasswordRequirements';
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -36,7 +38,7 @@ export default function Register() {
       }
     } catch (err) {
       console.error(err);
-      const errorMessage = err.response?.data?.detail || 'Registration error.';
+      const errorMessage = err.response?.data?.detail || t('register.error');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -45,7 +47,7 @@ export default function Register() {
 
   if (pendingEmail) {
     return (
-      <AuthLayout title="Confirm your email">
+      <AuthLayout title={t('auth.confirm_email')}>
         <VerifyCodeForm
           email={pendingEmail}
           onVerified={(body) => applyIdentitySession(body, { login, navigate })}
@@ -59,11 +61,11 @@ export default function Register() {
   }
 
   return (
-    <AuthLayout title="Create an account">
+    <AuthLayout title={t('register.title')}>
       <form onSubmit={handleRegister} className="space-y-4">
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Email
+            {t('common.email')}
           </span>
           <input
             type="email"
@@ -71,13 +73,13 @@ export default function Register() {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="input-brutal-hairline"
-            placeholder="you@example.com"
+            placeholder={t('common.email_placeholder')}
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Password
+            {t('auth.password')}
           </span>
           <PasswordInput
             value={password}
@@ -89,14 +91,14 @@ export default function Register() {
 
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Confirm password
+            {t('auth.confirm_password')}
           </span>
           <PasswordInput
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
             autoComplete="new-password"
-            placeholder="Re-enter your password"
+            placeholder={t('auth.confirm_password_placeholder')}
           />
         </label>
 
@@ -109,11 +111,11 @@ export default function Register() {
           disabled={loading || !checks.every((c) => c.ok)}
           className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm mt-0.5"
         >
-          {loading ? 'Creating…' : 'Create my account'}
+          {loading ? t('register.submitting') : t('register.submit')}
         </button>
 
         <AuthFooter>
-          <AuthLink to="/login">Sign in</AuthLink>
+          <AuthLink to="/login">{t('auth.sign_in')}</AuthLink>
         </AuthFooter>
       </form>
     </AuthLayout>

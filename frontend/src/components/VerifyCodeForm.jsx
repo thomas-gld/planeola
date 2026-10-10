@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import { AuthError, AuthNote, AuthFooter } from './AuthLayout';
 
 export default function VerifyCodeForm({ email, onVerified, onBack }) {
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
       await onVerified(res.data);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Invalid code.');
+      setError(err.response?.data?.detail || t('verify.invalid_code'));
       setLoading(false);
     }
   };
@@ -33,7 +35,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
       setCode('');
     } catch (err) {
       console.error(err);
-      setError('Could not send a new code.');
+      setError(t('verify.resend_failed'));
     } finally {
       setResending(false);
     }
@@ -42,12 +44,16 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-sm leading-[1.55] text-ink/60">
-        Code sent to <span className="font-bold text-ink break-all">{email}</span>.
+        <Trans
+          i18nKey="verify.code_sent_to"
+          values={{ email }}
+          components={{ strong: <span className="font-bold text-ink break-all" /> }}
+        />
       </p>
 
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-          Confirmation code
+          {t('verify.code')}
         </span>
         <input
           type="text"
@@ -63,7 +69,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
         />
       </label>
 
-      {resent && <AuthNote>New code sent.</AuthNote>}
+      {resent && <AuthNote>{t('verify.new_code_sent')}</AuthNote>}
       <AuthError>{error}</AuthError>
 
       <button
@@ -71,7 +77,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
         disabled={loading || code.length !== 6}
         className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm"
       >
-        {loading ? 'Confirming…' : 'Confirm'}
+        {loading ? t('verify.submitting') : t('verify.submit')}
       </button>
 
       <AuthFooter>
@@ -81,7 +87,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
           disabled={resending}
           className="text-row font-semibold text-primary hover:text-primary-deep transition disabled:opacity-50"
         >
-          {resending ? 'Sending…' : 'Send a new code'}
+          {resending ? t('common.sending') : t('verify.resend')}
         </button>
         {onBack && (
           <button
@@ -89,7 +95,7 @@ export default function VerifyCodeForm({ email, onVerified, onBack }) {
             onClick={onBack}
             className="text-row font-semibold text-ink/50 hover:text-ink transition"
           >
-            Use a different email
+            {t('verify.other_email')}
           </button>
         )}
       </AuthFooter>

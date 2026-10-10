@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { marked } from 'marked';
+import { useTranslation } from 'react-i18next';
 import Signature from '../components/Signature';
 import legalEn from '../legal/legal.en.md?raw';
 import legalFr from '../legal/legal.fr.md?raw';
@@ -11,44 +12,23 @@ const PAGES = {
   privacy: { en: marked.parse(privacyEn), fr: marked.parse(privacyFr) },
 };
 
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Français' },
-];
-
-// `?lang=` wins so a link can point at one version, else the browser's language.
-function pickLanguage(param) {
+// The app's language. `?lang=` wins, for the links between the two versions in the texts.
+function pickLanguage(param, appLanguage) {
   if (param === 'en' || param === 'fr') return param;
-  return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+  return appLanguage === 'fr' ? 'fr' : 'en';
 }
 
 export default function Legal({ page }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const lang = pickLanguage(searchParams.get('lang'));
+  const { i18n } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const lang = pickLanguage(searchParams.get('lang'), i18n.resolvedLanguage);
 
   return (
     <div className="min-h-screen bg-bg px-4 py-8 sm:py-12">
       <div className="mx-auto w-full max-w-[720px]">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <Link to="/" className="inline-block">
-            <img src="/planeola_rect.png" alt="Planeola" className="h-10 w-auto" />
-          </Link>
-          <div className="flex gap-1.5">
-            {LANGUAGES.map(({ code, label }) => (
-              <button
-                key={code}
-                type="button"
-                lang={code}
-                onClick={() => setSearchParams({ lang: code }, { replace: true })}
-                className={`border-2 border-ink rounded-brutal px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide transition ${
-                  lang === code ? 'bg-ink text-surface' : 'bg-surface text-ink hover:bg-muted'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Link to="/" className="block w-fit mb-6">
+          <img src="/planeola_rect.png" alt="Planeola" className="h-10 w-auto" />
+        </Link>
         <div className="card-brutal p-6 sm:p-9">
           {/* Our own files from src/legal, not user input. */}
           <div

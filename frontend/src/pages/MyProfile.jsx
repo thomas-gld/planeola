@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { User as UserIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,6 +43,7 @@ function PasswordField({ label, value, onChange, autoComplete = 'new-password' }
 }
 
 export default function MyProfile() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [member, setMember] = useState(null);
@@ -98,10 +100,10 @@ export default function MyProfile() {
         phone,
       });
       setMember((prev) => ({ ...prev, first_name: firstName, last_name: lastName, phone }));
-      notify('Profile saved.');
+      notify(t('profile.saved'));
     } catch (error) {
       console.error(error);
-      notify(error.response?.data?.detail || 'Could not save your profile.', 'error');
+      notify(error.response?.data?.detail || t('profile.save_failed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -120,14 +122,14 @@ export default function MyProfile() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      notify('Password changed.');
+      notify(t('profile.password_changed'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordForm(false);
     } catch (error) {
       console.error(error);
-      notify(error.response?.data?.detail || 'Could not change the password.', 'error');
+      notify(error.response?.data?.detail || t('profile.password_failed'), 'error');
     } finally {
       setChangingPassword(false);
     }
@@ -141,9 +143,9 @@ export default function MyProfile() {
     return (
       <div className="flex items-center justify-center p-4 py-24">
         <div className="border-2 border-ink rounded-brutal-lg bg-accent shadow-brutal p-6 text-center max-w-md">
-          <p className="font-bold mb-4">No member record linked to your account.</p>
+          <p className="font-bold mb-4">{t('profile.no_member')}</p>
           <button onClick={() => navigate('/')} className="btn-brutal-primary px-4 py-2">
-            Back to home
+            {t('profile.back_home')}
           </button>
         </div>
       </div>
@@ -174,16 +176,16 @@ export default function MyProfile() {
 
       <div className="flex items-center gap-3 flex-wrap border-b-2 border-ink bg-warning-tint px-5 sm:px-7 py-[13px]">
         <UserIcon size={19} className="shrink-0 text-warning" />
-        <span className="font-bold text-title tracking-snugger">My profile</span>
+        <span className="font-bold text-title tracking-snugger">{t('nav.my_profile')}</span>
       </div>
 
       <main className="flex-1 bg-surface">
-        <Section first title="Contact details">
+        <Section first title={t('profile.contact')}>
           <div className="flex flex-col gap-3.5 items-start max-w-[620px]">
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <label className="flex flex-col gap-1.5">
                 <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                  First name
+                  {t('profile.first_name')}
                 </span>
                 <input
                   type="text"
@@ -194,7 +196,7 @@ export default function MyProfile() {
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                  Last name
+                  {t('profile.last_name')}
                 </span>
                 <input
                   type="text"
@@ -205,7 +207,7 @@ export default function MyProfile() {
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                  Phone
+                  {t('profile.phone')}
                 </span>
                 <input
                   type="tel"
@@ -220,31 +222,35 @@ export default function MyProfile() {
               disabled={saving}
               className="inline-flex items-center gap-2 border-2 border-ink rounded-brutal-sm bg-warning-tint shadow-brutal-xs px-[18px] py-2.5 text-row font-bold text-warning"
             >
-              {saving ? 'Saving…' : 'Save changes'}
+              {saving ? t('common.saving') : t('profile.save')}
             </button>
           </div>
         </Section>
 
-        <Section title="Password">
+        <Section title={t('profile.password')}>
           <div className="max-w-[620px]">
             {!showPasswordForm ? (
               <button
                 onClick={() => setShowPasswordForm(true)}
                 className="inline-flex items-center gap-2 border border-ink/25 rounded-brutal bg-surface px-4 py-2.5 text-row font-bold hover:bg-warning-tint transition"
               >
-                Change password
+                {t('profile.change_password')}
               </button>
             ) : (
               <form onSubmit={handleChangePassword} className="flex flex-col gap-3.5 items-start">
                 <PasswordField
-                  label="Current password"
+                  label={t('profile.current_password')}
                   value={currentPassword}
                   onChange={setCurrentPassword}
                   autoComplete="current-password"
                 />
-                <PasswordField label="New password" value={newPassword} onChange={setNewPassword} />
                 <PasswordField
-                  label="Confirm new password"
+                  label={t('profile.new_password')}
+                  value={newPassword}
+                  onChange={setNewPassword}
+                />
+                <PasswordField
+                  label={t('profile.confirm_new_password')}
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                 />
@@ -256,7 +262,7 @@ export default function MyProfile() {
                     disabled={changingPassword || !passwordOk}
                     className="border-2 border-ink rounded-brutal-sm bg-warning-tint shadow-brutal-xs px-[18px] py-2.5 text-row font-bold text-warning"
                   >
-                    {changingPassword ? 'Updating…' : 'Confirm'}
+                    {changingPassword ? t('profile.updating') : t('common.confirm')}
                   </button>
                   <button
                     type="button"
@@ -268,7 +274,7 @@ export default function MyProfile() {
                     }}
                     className="bg-transparent px-1 py-2.5 text-row font-semibold text-ink/55 hover:text-ink underline transition"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </form>

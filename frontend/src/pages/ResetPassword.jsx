@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 import AuthLayout, { AuthError, AuthLink, AuthNote, AuthFooter } from '../components/AuthLayout';
@@ -7,6 +8,7 @@ import PasswordInput from '../components/PasswordInput';
 import PasswordRequirements from '../components/PasswordRequirements';
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
@@ -29,7 +31,7 @@ export default function ResetPassword() {
       setTimeout(() => navigate('/login'), 2500);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Reset error.');
+      setError(err.response?.data?.detail || t('reset.error'));
     } finally {
       setLoading(false);
     }
@@ -37,14 +39,14 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <AuthLayout title="Invalid link">
+      <AuthLayout title={t('reset.invalid_title')}>
         <div className="space-y-[18px]">
-          <AuthError>This reset link is incomplete. Request a new one.</AuthError>
+          <AuthError>{t('reset.invalid')}</AuthError>
           <Link
             to="/forgot-password"
             className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm"
           >
-            Request a new link
+            {t('auth.request_new_link')}
           </Link>
         </div>
       </AuthLayout>
@@ -53,14 +55,14 @@ export default function ResetPassword() {
 
   if (done) {
     return (
-      <AuthLayout title="Password updated">
+      <AuthLayout title={t('reset.done_title')}>
         <div className="space-y-[18px]">
-          <AuthNote>Your password has been changed. Redirecting you to the login page…</AuthNote>
+          <AuthNote>{t('reset.done')}</AuthNote>
           <Link
             to="/login"
             className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm"
           >
-            Sign in
+            {t('auth.sign_in')}
           </Link>
         </div>
       </AuthLayout>
@@ -68,11 +70,11 @@ export default function ResetPassword() {
   }
 
   return (
-    <AuthLayout title="New password">
+    <AuthLayout title={t('reset.title')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            New password
+            {t('reset.new_password')}
           </span>
           <PasswordInput
             value={password}
@@ -85,14 +87,14 @@ export default function ResetPassword() {
 
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-            Confirm password
+            {t('auth.confirm_password')}
           </span>
           <PasswordInput
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
             autoComplete="new-password"
-            placeholder="Re-enter your password"
+            placeholder={t('auth.confirm_password_placeholder')}
           />
         </label>
 
@@ -105,12 +107,12 @@ export default function ResetPassword() {
           disabled={loading || !checks.every((c) => c.ok)}
           className="btn-brutal-primary w-full py-[13px] text-emphasis shadow-brutal-sm mt-0.5"
         >
-          {loading ? 'Saving…' : 'Set my new password'}
+          {loading ? t('common.saving') : t('reset.submit')}
         </button>
 
         <AuthFooter>
-          <AuthLink to="/login">Back to login</AuthLink>
-          <AuthLink to="/forgot-password">Request a new link</AuthLink>
+          <AuthLink to="/login">{t('auth.back_to_login')}</AuthLink>
+          <AuthLink to="/forgot-password">{t('auth.request_new_link')}</AuthLink>
         </AuthFooter>
       </form>
     </AuthLayout>

@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronUp, ChevronDown, X, Plus, Lock, Clock, Users, MapPin, History } from 'lucide-react';
 import { parseCategories } from '../lib/categories';
 import { WEEKDAYS, parseClosedDays } from '../lib/closedDays';
@@ -70,6 +71,7 @@ function ReorderableRow({
   onRemove,
   trailing,
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={
@@ -83,7 +85,7 @@ function ReorderableRow({
           type="button"
           onClick={() => onMove(-1)}
           disabled={isFirst}
-          title="Move up"
+          title={t('settings.move_up')}
           className="text-ink/40 hover:text-ink disabled:opacity-20 leading-none"
         >
           <ChevronUp size={14} />
@@ -92,7 +94,7 @@ function ReorderableRow({
           type="button"
           onClick={() => onMove(1)}
           disabled={isLast}
-          title="Move down"
+          title={t('settings.move_down')}
           className="text-ink/40 hover:text-ink disabled:opacity-20 leading-none"
         >
           <ChevronDown size={14} />
@@ -102,7 +104,7 @@ function ReorderableRow({
         type="color"
         value={color}
         onChange={(e) => onColor(e.target.value)}
-        title="Color"
+        title={t('settings.color')}
         className="w-[26px] h-[26px] rounded-full border-2 border-ink cursor-pointer p-0 bg-surface shrink-0 overflow-hidden"
       />
       <input
@@ -135,7 +137,7 @@ function ReorderableRow({
       <button
         type="button"
         onClick={onRemove}
-        title="Delete"
+        title={t('common.delete')}
         className={`text-ink/35 hover:text-danger transition p-1 shrink-0 ${banded ? 'ml-auto' : ''}`}
       >
         <X size={15} />
@@ -149,6 +151,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
   { initial = {}, memberCounts, onDirtyChange, variant = 'card', orgName, onOrgNameChange },
   ref,
 ) {
+  const { t } = useTranslation();
   const banded = variant === 'banded';
   // A new organization is offered the creator's zone, an existing one has the default.
   const initialTimezone = parseTimezone(
@@ -215,12 +218,12 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         .map((c) => ({ name: c.name.trim(), color: c.color }))
         .filter((c) => c.name);
       if (cleanCategories.length === 0) {
-        setError('At least one category is required.');
+        setError(t('settings.need_category'));
         return null;
       }
       const names = cleanCategories.map((c) => c.name.toLowerCase());
       if (new Set(names).size !== names.length) {
-        setError('Two categories have the same name.');
+        setError(t('settings.duplicate_category'));
         return null;
       }
 
@@ -238,7 +241,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         cleanTimeSlots.push({ key, label, color: slot.color || FALLBACK_COLOR });
       }
       if (cleanTimeSlots.length === 0) {
-        setError('At least one time slot is required.');
+        setError(t('settings.need_time_slot'));
         return null;
       }
 
@@ -298,7 +301,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
                 : 'bg-surface text-ink hover:bg-muted'
             }`}
           >
-            {label}
+            {t(label)}
           </button>
         );
       })}
@@ -322,11 +325,11 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
   const pastDaysToggle = (
     <div className={banded ? 'flex flex-wrap gap-2 px-7 py-5' : 'flex flex-wrap gap-2'}>
       {[
-        { value: true, label: 'Show' },
-        { value: false, label: 'Hide' },
+        { value: true, label: t('common.show') },
+        { value: false, label: t('common.hide') },
       ].map(({ value, label }) => (
         <button
-          key={label}
+          key={String(value)}
           type="button"
           onClick={() => setShowPastDays(value)}
           className={`border-2 border-ink rounded-brutal px-4 py-2 font-mono text-xs font-bold uppercase tracking-wide transition ${
@@ -350,7 +353,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
             banded={banded}
             color={slot.color || FALLBACK_COLOR}
             name={slot.label}
-            placeholder="Time slot name"
+            placeholder={t('settings.time_slot_name')}
             isFirst={index === 0}
             isLast={index === timeSlots.length - 1}
             onMove={(d) => moveTimeSlot(index, d)}
@@ -369,7 +372,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
             : 'btn-brutal-white mt-4 px-4 py-2'
         }
       >
-        <Plus size={14} /> Add a time slot
+        <Plus size={14} /> {t('settings.add_time_slot')}
       </button>
     </div>
   );
@@ -383,7 +386,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
             banded={banded}
             color={cat.color}
             name={cat.name}
-            placeholder="Category name"
+            placeholder={t('settings.category_name')}
             isFirst={index === 0}
             isLast={index === categories.length - 1}
             onMove={(d) => moveCategory(index, d)}
@@ -397,7 +400,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
                     share: `${((memberCounts?.[cat.name] ?? 0) / maxCategoryCount) * 100}%`,
                   }
                 : memberCounts
-                  ? `${memberCounts[cat.name] ?? 0} members`
+                  ? t('common.members_count', { count: memberCounts[cat.name] ?? 0 })
                   : undefined
             }
           />
@@ -412,7 +415,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
             : 'btn-brutal-white mt-4 px-4 py-2'
         }
       >
-        <Plus size={14} /> Add a category
+        <Plus size={14} /> {t('settings.add_category')}
       </button>
     </div>
   );
@@ -420,11 +423,11 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
   if (banded) {
     return (
       <div>
-        <SettingsBand top tone="warning" Icon={MapPin} title="Identity">
+        <SettingsBand top tone="warning" Icon={MapPin} title={t('settings.identity')}>
           <div className="flex gap-7 flex-wrap px-7 py-5">
             <label className="flex-1 min-w-[280px] max-w-[420px] flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Organization name
+                {t('orgs.name')}
               </span>
               <input
                 type="text"
@@ -435,7 +438,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
             </label>
             <label className="flex-1 min-w-[280px] max-w-[420px] flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
-                Time zone
+                {t('settings.time_zone')}
               </span>
               {timezoneSelect}
             </label>
@@ -445,8 +448,8 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         <SettingsBand
           tone="danger"
           Icon={Lock}
-          title="Closed days"
-          hint="Set your organization's weekly closed days"
+          title={t('settings.closed_days')}
+          hint={t('settings.closed_days_hint')}
         >
           {closedDaysToggles}
         </SettingsBand>
@@ -454,8 +457,8 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         <SettingsBand
           tone="warning"
           Icon={History}
-          title="Past days"
-          hint="Show or hide past days for this month on the planning."
+          title={t('settings.past_days')}
+          hint={t('settings.past_days_hint')}
         >
           {pastDaysToggle}
         </SettingsBand>
@@ -463,8 +466,8 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         <SettingsBand
           tone="primary"
           Icon={Clock}
-          title="Planning time slots"
-          meta={`${timeSlots.length} columns`}
+          title={t('settings.time_slots')}
+          meta={t('settings.columns', { count: timeSlots.length })}
         >
           {timeSlotRows}
         </SettingsBand>
@@ -472,8 +475,8 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
         <SettingsBand
           tone="secondary"
           Icon={Users}
-          title="Member categories"
-          meta={memberCounts ? `${totalMembers} members` : undefined}
+          title={t('settings.categories')}
+          meta={memberCounts ? t('common.members_count', { count: totalMembers }) : undefined}
         >
           {categoryRows}
         </SettingsBand>
@@ -485,15 +488,15 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
 
   return (
     <div className="space-y-6">
-      <SettingsCard title="Time zone">{timezoneSelect}</SettingsCard>
+      <SettingsCard title={t('settings.time_zone')}>{timezoneSelect}</SettingsCard>
 
-      <SettingsCard title="Closed days">{closedDaysToggles}</SettingsCard>
+      <SettingsCard title={t('settings.closed_days')}>{closedDaysToggles}</SettingsCard>
 
-      <SettingsCard title="Past days">{pastDaysToggle}</SettingsCard>
+      <SettingsCard title={t('settings.past_days')}>{pastDaysToggle}</SettingsCard>
 
-      <SettingsCard title="Planning time slots">{timeSlotRows}</SettingsCard>
+      <SettingsCard title={t('settings.time_slots')}>{timeSlotRows}</SettingsCard>
 
-      <SettingsCard title="Member categories">{categoryRows}</SettingsCard>
+      <SettingsCard title={t('settings.categories')}>{categoryRows}</SettingsCard>
 
       {error && <div className="alert-brutal-danger">{error}</div>}
     </div>

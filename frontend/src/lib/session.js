@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import api from './api';
 
 // From /auth/login, /auth/register or /auth/verify-email: an access_token, or a
@@ -12,7 +13,7 @@ export async function applyIdentitySession(body, { login, navigate }) {
   }
 
   if (!accounts || accounts.length === 0) {
-    throw new Error('No organization is linked to this account.');
+    throw new Error(i18n.t('session.no_org'));
   }
 
   if (accounts.length === 1) {

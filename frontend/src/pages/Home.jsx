@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import useFeedback from '../hooks/useFeedback';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
-import dayjs from 'dayjs';
-import 'dayjs/locale/en';
 import { useAuth } from '../contexts/AuthContext';
 import Signature from '../components/Signature';
 import OrganizationsList from '../components/OrganizationsList';
@@ -14,8 +13,6 @@ import { DEFAULT_ORG_CONFIG, parseOrgConfig } from '../lib/orgConfig';
 import { computeSubmissionDiffs, summarizeDiffs } from '../lib/availabilityDiff';
 import { orgToday } from '../lib/timezone';
 import { Users, CalendarDays, TriangleAlert } from 'lucide-react';
-
-dayjs.locale('en');
 
 // One month, or the first and last months when the diffs span several.
 function monthRangeLabel(monthDiffs) {
@@ -59,6 +56,7 @@ function Panel({ tone, Icon, title, meta, link, linkTo, children }) {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { notify } = useFeedback();
@@ -117,7 +115,7 @@ export default function Home() {
         <div className="card-brutal w-full max-w-md p-6 md:p-8">
           <div className="text-center mb-6">
             <img src="/planeola_rect.png" alt="Planeola" className="w-48 mx-auto mb-6" />
-            <h1 className="font-sans font-bold text-2xl tracking-tight">Your organizations</h1>
+            <h1 className="font-sans font-bold text-2xl tracking-tight">{t('orgs.your_orgs')}</h1>
           </div>
 
           <OrganizationsList />
@@ -126,7 +124,7 @@ export default function Home() {
             onClick={handleLogout}
             className="mt-6 w-full text-center font-mono text-xs uppercase tracking-wider text-ink/50 hover:text-ink transition"
           >
-            Logout
+            {t('home.logout')}
           </button>
         </div>
       </div>
@@ -150,7 +148,7 @@ export default function Home() {
       api.get('/assignments').then((res) => setAllAssignments(res.data || {}));
     } catch (error) {
       console.error(error);
-      notify('Could not validate the submission.', 'error');
+      notify(t('home.validate_failed'), 'error');
     }
   };
 
@@ -160,7 +158,7 @@ export default function Home() {
       await refreshSubmissions();
     } catch (error) {
       console.error(error);
-      notify('Could not ignore the submission.', 'error');
+      notify(t('home.ignore_failed'), 'error');
     }
   };
 
@@ -192,13 +190,13 @@ export default function Home() {
             <Panel
               tone="primary"
               Icon={CalendarDays}
-              title="Next open days"
-              link="Full planning"
+              title={t('home.next_open_days')}
+              link={t('home.full_planning')}
               linkTo="/planning"
             >
               <div className="px-[22px] pb-4 pt-1.5">
                 {nextOpenDays.length === 0 ? (
-                  <p className="py-4 text-sm text-ink/45">No open days.</p>
+                  <p className="py-4 text-sm text-ink/45">{t('home.no_open_days')}</p>
                 ) : (
                   nextOpenDays.map(({ dateStr, day, slotCounts }, i) => (
                     <div
@@ -206,7 +204,7 @@ export default function Home() {
                       className={`flex items-baseline gap-4 py-3 ${i < nextOpenDays.length - 1 ? 'border-b border-ink/[0.08]' : ''}`}
                     >
                       <span className="w-[118px] font-mono text-row font-bold shrink-0">
-                        {day.format('ddd MMM D')}
+                        {day.format(t('formats.weekday_short_day_month'))}
                       </span>
                       <span className="flex-1 flex gap-[18px] text-sm flex-wrap">
                         {slotCounts.map((slot) => (
@@ -233,9 +231,9 @@ export default function Home() {
             <Panel
               tone="secondary"
               Icon={Users}
-              title="Members"
-              meta={`${active.length} active`}
-              link="All members"
+              title={t('nav.members')}
+              meta={t('home.active', { count: active.length })}
+              link={t('home.all_members')}
               linkTo="/members"
             >
               <div className="px-[22px] pb-3.5 pt-1.5">
@@ -274,7 +272,7 @@ export default function Home() {
             <div className="w-[330px] shrink-0 border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal-sm overflow-hidden">
               <div className="px-5 py-3.5 bg-warning-tint border-b-2 border-ink flex items-center gap-2.5">
                 <TriangleAlert size={17} className="text-warning" />
-                <span className="text-sm font-bold">Pending validation</span>
+                <span className="text-sm font-bold">{t('home.pending_validation')}</span>
                 <span className="ml-auto font-mono text-xs font-bold text-warning">
                   {submissionCards.length}
                 </span>
@@ -289,13 +287,13 @@ export default function Home() {
                       {sub.member?.first_name} {sub.member?.last_name}
                     </div>
                     <div className="font-mono text-meta uppercase tracking-caps-md text-ink/45 mb-2.5">
-                      {when || 'No date'}
+                      {when || t('home.no_date')}
                     </div>
                     <div className="flex gap-4 items-baseline mb-3">
                       <span className="font-mono text-emphasis font-bold text-success-deep">
                         +{toAdd}{' '}
                         <span className="font-normal text-label uppercase tracking-caps-md text-ink/45">
-                          to add
+                          {t('home.to_add')}
                         </span>
                       </span>
                       <span
@@ -303,7 +301,7 @@ export default function Home() {
                       >
                         −{toRemove}{' '}
                         <span className="font-normal text-label uppercase tracking-caps-md text-ink/45">
-                          to remove
+                          {t('home.to_remove')}
                         </span>
                       </span>
                     </div>
@@ -312,13 +310,13 @@ export default function Home() {
                         onClick={() => handleValidate(sub.id)}
                         className="border-2 border-ink rounded-brutal-sm bg-success text-surface shadow-brutal-xs px-4 py-[7px] text-row font-bold"
                       >
-                        Validate
+                        {t('submission.validate')}
                       </button>
                       <button
                         onClick={() => handleDismiss(sub.id)}
                         className="bg-transparent px-1.5 py-[7px] text-row font-semibold text-ink/50 hover:text-ink underline"
                       >
-                        Dismiss
+                        {t('submission.ignore')}
                       </button>
                     </div>
                   </div>

@@ -1,19 +1,34 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
+import { DEFAULT_CATEGORIES } from '../lib/categories';
+import { DEFAULT_TIME_SLOTS } from '../lib/timeSlots';
 import OrgSettingsForm from './OrgSettingsForm';
+
+// Translation keys for default names.
+const CATEGORY_KEYS = ['lead', 'member', 'intern', 'community_service'];
 
 // The settings are applied with the new organization's own token.
 export default function CreateOrganizationModal({ onClose, onCreated }) {
+  const { t } = useTranslation();
   const [orgName, setOrgName] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const formRef = useRef(null);
+  const [initial] = useState(() => ({
+    categories: JSON.stringify(
+      DEFAULT_CATEGORIES.map((c, i) => ({ ...c, name: t(`orgs.defaults.${CATEGORY_KEYS[i]}`) })),
+    ),
+    time_slots: JSON.stringify(
+      DEFAULT_TIME_SLOTS.map((s) => ({ ...s, label: t(`orgs.defaults.${s.key}`) })),
+    ),
+  }));
 
   const handleCreate = async (e) => {
     e.preventDefault();
     const name = orgName.trim();
     if (!name) {
-      setError('Organization name is required.');
+      setError(t('orgs.name_required'));
       return;
     }
     const settings = formRef.current.getValues();
@@ -31,7 +46,7 @@ export default function CreateOrganizationModal({ onClose, onCreated }) {
       );
       onCreated(token);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Could not create the organization.');
+      setError(err.response?.data?.detail || t('orgs.create_failed'));
       setCreating(false);
     }
   };
@@ -41,13 +56,13 @@ export default function CreateOrganizationModal({ onClose, onCreated }) {
       <div className="card-brutal shadow-brutal-xl w-full max-w-2xl my-8">
         <form onSubmit={handleCreate}>
           <div className="p-6 border-b-2 border-ink">
-            <h2 className="font-sans font-bold text-2xl tracking-snugger">Create organization</h2>
+            <h2 className="font-sans font-bold text-2xl tracking-snugger">{t('orgs.create')}</h2>
           </div>
 
           <div className="p-6 space-y-6 max-h-[65vh] overflow-y-auto bg-bg">
             <div className="card-brutal p-6">
               <label className="label-brutal">
-                Organization name <span className="text-danger">*</span>
+                {t('orgs.name')} <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -55,12 +70,12 @@ export default function CreateOrganizationModal({ onClose, onCreated }) {
                 required
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                placeholder="e.g. My organization"
+                placeholder={t('orgs.name_placeholder')}
                 className="input-brutal"
               />
             </div>
 
-            <OrgSettingsForm ref={formRef} initial={{}} />
+            <OrgSettingsForm ref={formRef} initial={initial} />
 
             {error && (
               <div className="border-2 border-ink bg-danger/10 px-4 py-3 text-sm font-semibold text-center">
@@ -76,10 +91,10 @@ export default function CreateOrganizationModal({ onClose, onCreated }) {
               disabled={creating}
               className="btn-brutal-white flex-1 py-3"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" disabled={creating} className="btn-brutal-primary flex-1 py-3">
-              {creating ? 'Creating…' : 'Create organization'}
+              {creating ? t('common.creating') : t('orgs.create')}
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -18,23 +19,27 @@ const VIOLET = { text: 'text-secondary' };
 const AMBER = { text: 'text-warning' };
 
 const ADMIN_ITEMS = [
-  { to: '/', label: 'Home', Icon: LayoutDashboard, ...BLUE, end: true },
-  { to: '/planning', label: 'Planning', Icon: CalendarDays, ...BLUE },
-  { to: '/members', label: 'Members', Icon: Users, ...VIOLET },
-  { to: '/options', label: 'Options', Icon: Settings, ...AMBER },
+  { to: '/', label: 'nav.home', Icon: LayoutDashboard, ...BLUE, end: true },
+  { to: '/planning', label: 'nav.planning', Icon: CalendarDays, ...BLUE },
+  { to: '/members', label: 'nav.members', Icon: Users, ...VIOLET },
+  { to: '/options', label: 'nav.options', Icon: Settings, ...AMBER },
 ];
 
 const MEMBER_ITEMS = [
-  { to: '/member-home', label: 'Home', Icon: LayoutDashboard, ...BLUE, end: true },
-  { to: '/member-planning', label: 'Planning', Icon: CalendarDays, ...BLUE },
-  { to: '/my-availability', label: 'My availability', Icon: CalendarCheck, ...VIOLET },
-  { to: '/my-profile', label: 'My profile', Icon: User, ...AMBER },
+  { to: '/member-home', label: 'nav.home', Icon: LayoutDashboard, ...BLUE, end: true },
+  { to: '/member-planning', label: 'nav.planning', Icon: CalendarDays, ...BLUE },
+  { to: '/my-availability', label: 'nav.my_availability', Icon: CalendarCheck, ...VIOLET },
+  { to: '/my-profile', label: 'nav.my_profile', Icon: User, ...AMBER },
 ];
 
-// The tab bar is too narrow for the rail labels.
-const TAB_LABELS = { '/my-availability': 'Availability', '/my-profile': 'Profile' };
+// Translation keys. The tab bar is too narrow for the rail labels.
+const TAB_LABELS = {
+  '/my-availability': 'nav.availability_short',
+  '/my-profile': 'nav.profile_short',
+};
 
 export default function AppRail() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { accounts } = useOrgAccounts();
@@ -77,7 +82,7 @@ export default function AppRail() {
                       isActive ? 'text-ink' : 'text-ink/55'
                     }`}
                   >
-                    {label}
+                    {t(label)}
                   </span>
                 </>
               )}
@@ -87,7 +92,7 @@ export default function AppRail() {
 
         <button
           onClick={handleLogout}
-          title="Log out"
+          title={t('nav.log_out')}
           className="mt-auto w-12 h-11 rounded-brutal bg-transparent text-ink/50 flex items-center
             justify-center hover:bg-danger/[0.12] hover:text-danger transition-colors"
         >
@@ -110,7 +115,7 @@ export default function AppRail() {
         </div>
         <button
           onClick={handleLogout}
-          title="Log out"
+          title={t('nav.log_out')}
           className="w-11 h-[38px] shrink-0 border-2 border-ink rounded-brutal-sm bg-surface flex items-center justify-center"
         >
           <LogOut size={18} />
@@ -131,7 +136,7 @@ export default function AppRail() {
               >
                 <Icon size={20} />
                 <span className="font-mono text-micro uppercase tracking-caps">
-                  {TAB_LABELS[to] || label}
+                  {t(TAB_LABELS[to] || label)}
                 </span>
               </span>
             )}

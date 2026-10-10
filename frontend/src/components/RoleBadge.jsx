@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+
 const SIZES = {
   sm: 'px-1.5 py-px text-micro shadow-none border-[1.5px]',
   md: 'px-2.5 py-1 text-meta shadow-brutal-xs border-2',
 };
 
 export default function RoleBadge({ role, size = 'sm' }) {
+  const { t } = useTranslation();
   const isAdmin = role === 'admin';
   return (
     <span
@@ -11,7 +14,7 @@ export default function RoleBadge({ role, size = 'sm' }) {
         isAdmin ? 'bg-danger' : 'bg-primary'
       } ${SIZES[size]}`}
     >
-      {isAdmin ? 'Admin' : 'Member'}
+      {isAdmin ? t('roles.admin') : t('roles.member')}
     </span>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import useFeedback from '../hooks/useFeedback';
 import Loading from '../components/Loading';
@@ -9,14 +10,16 @@ import OrgSwitcher from '../components/OrgSwitcher';
 // Quiet time after the last edit before saving.
 const SAVE_DELAY_MS = 800;
 
+// `text` is a translation key.
 const STATUS = {
-  saved: { text: 'All changes saved', className: 'text-ink/45' },
-  saving: { text: 'Saving…', className: 'text-ink/45' },
-  incomplete: { text: 'Name the empty rows to save', className: 'text-warning' },
-  error: { text: 'Not saved', className: 'text-danger' },
+  saved: { text: 'options.saved', className: 'text-ink/45' },
+  saving: { text: 'common.saving', className: 'text-ink/45' },
+  incomplete: { text: 'options.incomplete', className: 'text-warning' },
+  error: { text: 'options.error', className: 'text-danger' },
 };
 
 export default function Options() {
+  const { t } = useTranslation();
   const [orgName, setOrgName] = useState('');
   const [initial, setInitial] = useState(null);
   const [memberCounts, setMemberCounts] = useState(null);
@@ -79,7 +82,7 @@ export default function Options() {
     } catch (error) {
       console.error(error);
       setStatus('error');
-      notify(error.response?.data?.detail || 'Could not save the options.', 'error');
+      notify(error.response?.data?.detail || t('options.save_failed'), 'error');
     } finally {
       saving.current = false;
       if (saveAgain.current) {
@@ -120,11 +123,11 @@ export default function Options() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <PageHeader title="Options" subtitle="Organization settings">
+      <PageHeader title={t('nav.options')} subtitle={t('options.subtitle')}>
         <span
           className={`font-mono text-label font-bold uppercase tracking-wide ${STATUS[status].className}`}
         >
-          {STATUS[status].text}
+          {t(STATUS[status].text)}
         </span>
         <OrgSwitcher />
       </PageHeader>

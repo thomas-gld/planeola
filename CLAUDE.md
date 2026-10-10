@@ -2,8 +2,8 @@
 
 **Planeola**: a multi-tenant scheduling app. Members declare when they are
 available, admins turn that into a monthly schedule. `backend/` is FastAPI +
-SQLAlchemy + PostgreSQL, `frontend/` is React + Vite + Tailwind. Everything is
-in English.
+SQLAlchemy + PostgreSQL, `frontend/` is React + Vite + Tailwind. Code, comments
+and the backend are in English; the interface is translated (English, French).
 
 Frontend: `src/pages/`, `src/components/`, and the non-UI modules (API client,
 option parsing, dates, diffs) in `src/lib/`.
@@ -86,6 +86,25 @@ organization).
 `parseOrgConfig` (`lib/orgConfig.js`) is the only place the frontend maps options to
 values. `OrgSettingsForm` serves both the Options page and the
 create-organization modal.
+
+## Translations
+
+- `react-i18next`, set up in `src/i18n.js`: the browser's language if supported,
+  else English. `src/locales/{en,fr}.json` change together, same keys.
+- No visible text in JSX: `t('section.key')` in components, `i18n.t` in `lib/`.
+  A module-level constant holds the key, translated at render (`WEEKDAYS`,
+  `AppRail` items).
+- Counts go through plurals (`key_one` / `key_other`, called with `{ count }`), never
+  `n + ' members'`. So never end a plain key in `_one` / `_other`.
+- Date formats are keys too (`formats.*`): dayjs follows the language, the
+  order does not. `'MMMM YYYY'` and `'YYYY-MM-DD'` stay literal.
+- Not translated: organization data (category and time-slot names), backend
+  error messages (`detail`, shown as is), emails. Only the names the
+  create-organization modal offers come from `orgs.defaults.*`; once saved
+  they are data. The fallbacks in `lib/` stay English: an organization
+  without the option already stores those names.
+- Legal pages are Markdown files, not keys: `Legal.jsx` picks the one in the app's
+  language, or `?lang=` (the links between versions in the texts).
 
 ## Conventions and traps
 

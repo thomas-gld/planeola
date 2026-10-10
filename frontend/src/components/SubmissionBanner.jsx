@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { ChevronLeft, ChevronRight, TriangleAlert } from 'lucide-react';
 import { formatSlotList } from '../lib/timeSlots';
@@ -12,6 +13,7 @@ function clearsEverything(submission) {
 }
 
 function DiffColumn({ diffs, kind, timeSlots }) {
+  const { t } = useTranslation();
   const dates = (d) => (kind === 'add' ? d.toAdd : d.toRemove);
   const slotsOn = (d, dateStr) => (kind === 'add' ? d.groupedToAdd : d.groupedToRemove)[dateStr];
   const accent = kind === 'add' ? 'border-success' : 'border-danger';
@@ -23,12 +25,16 @@ function DiffColumn({ diffs, kind, timeSlots }) {
         .map((d) => (
           <div key={`${kind}-${d.key}`}>
             <p className="font-mono text-label font-bold uppercase tracking-[0.14em] text-ink/45 mb-2">
-              {d.month.format('MMMM YYYY')} — to {kind === 'add' ? 'add' : 'remove'}
+              {t(kind === 'add' ? 'submission.to_add' : 'submission.to_remove', {
+                month: d.month.format('MMMM YYYY'),
+              })}
             </p>
             <div className="flex flex-col gap-[5px]">
               {dates(d).map((dateStr) => (
                 <span key={dateStr} className={`block border-l-[3px] ${accent} pl-2.5 text-sm`}>
-                  <strong className="font-bold">{dayjs(dateStr).format('dddd, MMMM D')}</strong>
+                  <strong className="font-bold">
+                    {dayjs(dateStr).format(t('formats.full_date'))}
+                  </strong>
                   <span className="text-ink/55">
                     {' '}
                     — {formatSlotList(timeSlots, slotsOn(d, dateStr))}
@@ -53,6 +59,7 @@ export default function SubmissionBanner({
   onValidate,
   onIgnore,
 }) {
+  const { t } = useTranslation();
   if (!submission?.member?.id) return null;
   if (diffs.length === 0 && !clearsEverything(submission)) return null;
 
@@ -63,7 +70,7 @@ export default function SubmissionBanner({
       <div className="flex items-center gap-3 px-7 py-[13px] flex-wrap">
         <TriangleAlert size={17} className="shrink-0 text-warning" />
         <span className="text-emphasis font-bold">
-          New availability submission — {first_name} {last_name?.toUpperCase()}
+          {t('submission.title', { name: `${first_name} ${last_name?.toUpperCase()}` })}
         </span>
         {submission.message && (
           <span className="text-row italic text-ink/70">"{submission.message}"</span>
@@ -75,6 +82,7 @@ export default function SubmissionBanner({
             </span>
             <button
               onClick={onPrev}
+              aria-label={t('submission.previous')}
               disabled={index === 0}
               className="w-[30px] h-[30px] border border-ink/20 rounded-[9px] bg-surface flex items-center justify-center disabled:opacity-40"
             >
@@ -82,6 +90,7 @@ export default function SubmissionBanner({
             </button>
             <button
               onClick={onNext}
+              aria-label={t('submission.next')}
               disabled={index === total - 1}
               className="w-[30px] h-[30px] border border-ink/20 rounded-[9px] bg-surface flex items-center justify-center disabled:opacity-40"
             >
@@ -94,7 +103,7 @@ export default function SubmissionBanner({
       <div className="border-t border-warning/25 bg-surface px-7 py-4 flex flex-col md:flex-row gap-8 items-start">
         {diffs.length === 0 ? (
           <p className="flex-1 text-center font-mono text-xs uppercase tracking-wider text-ink/50 py-2">
-            No changes
+            {t('common.no_changes')}
           </p>
         ) : (
           <>
@@ -107,13 +116,13 @@ export default function SubmissionBanner({
             onClick={onValidate}
             className="text-center border-2 border-ink rounded-brutal-sm bg-success text-surface shadow-brutal-xs px-3 py-2.5 text-sm font-bold"
           >
-            Validate
+            {t('submission.validate')}
           </button>
           <button
             onClick={onIgnore}
             className="bg-transparent px-1 py-1 text-row font-semibold text-ink/50 hover:text-ink underline text-left"
           >
-            Ignore
+            {t('submission.ignore')}
           </button>
         </div>
       </div>
