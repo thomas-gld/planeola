@@ -92,6 +92,15 @@ export default function Landing() {
     };
   }, [t]);
 
+  // Canonical url for search engines
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'canonical';
+    link.href = 'https://planeola.com/';
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg">
       <header className="mx-auto max-w-5xl px-4 py-5 flex items-center justify-between gap-4">
