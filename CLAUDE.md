@@ -3,7 +3,8 @@
 **Planeola**: a multi-tenant scheduling app. Members declare when they are
 available, admins turn that into a monthly schedule. `backend/` is FastAPI +
 SQLAlchemy + PostgreSQL, `frontend/` is React + Vite + Tailwind. Code, comments
-and the backend are in English; the interface is translated (English, French).
+and the backend are in English; the interface is translated (English, French, Spanish,
+Russian).
 
 Frontend: `src/pages/`, `src/components/`, and the non-UI modules (API client,
 option parsing, dates, diffs) in `src/lib/`.
@@ -90,12 +91,13 @@ create-organization modal.
 ## Translations
 
 - `react-i18next`, set up in `src/i18n.js`: the browser's language if supported,
-  else English. `src/locales/{en,fr}.json` change together, same keys.
+  else English. `src/locales/{en,es,fr,ru}.json` change together, same keys.
 - No visible text in JSX: `t('section.key')` in components, `i18n.t` in `lib/`.
   A module-level constant holds the key, translated at render (`WEEKDAYS`,
   `AppRail` items).
 - Counts go through plurals (`key_one` / `key_other`, called with `{ count }`), never
-  `n + ' members'`. So never end a plain key in `_one` / `_other`.
+  `n + ' members'`. So never end a plain key in `_one` / `_other`. Russian has
+  four forms: `ru.json` adds `key_few` / `key_many` to every plural.
 - Date formats are keys too (`formats.*`): dayjs follows the language, the
   order does not. `'MMMM YYYY'` and `'YYYY-MM-DD'` stay literal.
 - Not translated: organization data (category and time-slot names), backend
