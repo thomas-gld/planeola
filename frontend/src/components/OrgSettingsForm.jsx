@@ -116,11 +116,11 @@ function ReorderableRow({
           text-row font-semibold outline-none transition
           hover:border-dashed hover:border-ink/25
           focus:border-2 focus:border-ink focus:bg-surface focus:px-[7px] focus:py-[3px]
-          ${banded ? 'w-[260px] shrink-0' : 'flex-1'}`}
+          ${banded ? 'flex-1 sm:flex-none sm:w-[260px] sm:shrink-0' : 'flex-1'}`}
       />
       {banded && trailing && (
         <span
-          className="w-24 h-1.5 rounded-[3px] overflow-hidden shrink-0"
+          className="hidden sm:block w-24 h-1.5 rounded-[3px] overflow-hidden shrink-0"
           style={{ background: `${color}24` }}
         >
           <span className="block h-full" style={{ width: trailing?.share, background: color }} />
@@ -425,7 +425,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
       <div>
         <SettingsBand top tone="warning" Icon={MapPin} title={t('settings.identity')}>
           <div className="flex gap-7 flex-wrap px-7 py-5">
-            <label className="flex-1 min-w-[280px] max-w-[420px] flex flex-col gap-1.5">
+            <label className="flex-[1_1_280px] min-w-0 max-w-[420px] flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
                 {t('orgs.name')}
               </span>
@@ -436,7 +436,7 @@ const OrgSettingsForm = forwardRef(function OrgSettingsForm(
                 className="input-brutal-hairline-text"
               />
             </label>
-            <label className="flex-1 min-w-[280px] max-w-[420px] flex flex-col gap-1.5">
+            <label className="flex-[1_1_280px] min-w-0 max-w-[420px] flex flex-col gap-1.5">
               <span className="font-mono text-label font-bold uppercase tracking-caps-lg text-ink/50">
                 {t('settings.time_zone')}
               </span>

@@ -185,7 +185,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col px-9 pt-[34px] pb-[26px] gap-[30px]">
         <HomeHeader orgName={orgName} timezone={timezone} />
 
-        <div className="flex gap-[26px] items-start">
+        <div className="flex flex-col lg:flex-row gap-[26px] items-stretch lg:items-start">
           <div className="flex-1 min-w-0 flex flex-col gap-[22px]">
             <Panel
               tone="primary"
@@ -269,7 +269,7 @@ export default function Home() {
           </div>
 
           {submissionCards.length > 0 && (
-            <div className="w-[330px] shrink-0 border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal-sm overflow-hidden">
+            <div className="order-first lg:order-none lg:w-[330px] shrink-0 border-2 border-ink rounded-brutal-lg bg-surface shadow-brutal-sm overflow-hidden">
               <div className="px-5 py-3.5 bg-warning-tint border-b-2 border-ink flex items-center gap-2.5">
                 <TriangleAlert size={17} className="text-warning" />
                 <span className="text-sm font-bold">{t('home.pending_validation')}</span>
