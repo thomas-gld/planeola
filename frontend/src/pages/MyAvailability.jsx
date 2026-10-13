@@ -382,6 +382,7 @@ export default function MyAvailability() {
               </span>
               {group.days.map((date) => {
                 const inactive = isInactiveDay(date);
+                const isPast = date.isBefore(today, 'day');
                 const isToday = date.isSame(today, 'day');
 
                 if (inactive) {
@@ -395,6 +396,19 @@ export default function MyAvailability() {
                       </span>
                       <span className="flex-1 inline-flex items-center gap-1.5 font-mono text-label font-bold uppercase tracking-widest text-ink/40">
                         <Lock size={12} /> {t('common.closed')}
+                      </span>
+                    </div>
+                  );
+                }
+
+                if (isPast) {
+                  return (
+                    <div
+                      key={date.format('YYYY-MM-DD')}
+                      className="flex items-center border border-ink/14 rounded-brutal bg-well px-2.5 py-3"
+                    >
+                      <span className="font-mono text-meta font-bold uppercase tracking-wide text-ink/30">
+                        {date.format('ddd D')}
                       </span>
                     </div>
                   );
