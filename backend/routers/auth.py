@@ -21,7 +21,11 @@ from core.security import (
     verify_password,
 )
 from db import SessionDep
-from email_service import send_password_reset_email, send_verification_code_email
+from email_service import (
+    request_language,
+    send_password_reset_email,
+    send_verification_code_email,
+)
 from models import Account, Invitation, Login, Option, User, UserRole, as_utc
 from schemas import (
     ChangePasswordRequest,
@@ -111,7 +115,7 @@ def _session_token(user: User, login_id: int) -> str:
 
 
 async def _issue_verification_code(
-    session: AsyncSession, login: Login, background_tasks: BackgroundTasks
+    session: AsyncSession, login: Login, background_tasks: BackgroundTasks, lang: str
 ) -> None:
     """New code, stored hashed, emailed."""
     code = f"{secrets.randbelow(1_000_000):06d}"
@@ -124,7 +128,9 @@ async def _issue_verification_code(
 
     if ECHO_SECRETS:
         print(f"🔑 Verification code for {login.email}: {code}", flush=True)
-    background_tasks.add_task(send_verification_code_email, recipient_email=login.email, code=code)
+    background_tasks.add_task(
+        send_verification_code_email, recipient_email=login.email, code=code, lang=lang
+    )
 
 
 async def _provision_account(
@@ -201,7 +207,9 @@ async def login(
 
     # Unconfirmed registration: a new code, no session.
     if not login_row.email_verified:
-        await _issue_verification_code(session, login_row, background_tasks)
+        await _issue_verification_code(
+            session, login_row, background_tasks, request_language(request)
+        )
         logger.info(f"Login blocked pending email verification: {email} | IP={client_ip}")
         return {"status": "verification_required", "email": login_row.email}
 
@@ -415,7 +423,9 @@ async def register(
         session.add(login_row)
     await session.flush()
 
-    await _issue_verification_code(session, login_row, background_tasks)
+    await _issue_verification_code(
+            session, login_row, background_tasks, request_language(request)
+        )
     return {"status": "verification_required", "email": email}
 
 
@@ -477,7 +487,9 @@ async def resend_verification_code(
 
     login_row = await _find_login(session, email)
     if login_row and not login_row.email_verified:
-        await _issue_verification_code(session, login_row, background_tasks)
+        await _issue_verification_code(
+            session, login_row, background_tasks, request_language(request)
+        )
     return {"status": "verification_required", "email": email}
 
 
@@ -570,6 +582,7 @@ async def forgot_password(
         recipient_name=recipient_name,
         reset_url=reset_url,
         expires_in_minutes=PASSWORD_RESET_TTL_MINUTES,
+        lang=request_language(request),
     )
 
     return {"message": generic_message}

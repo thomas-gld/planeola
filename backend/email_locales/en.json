@@ -1,0 +1,61 @@
+{
+  "common": {
+    "regards": "Best regards,",
+    "footer": "Sent automatically — please do not reply",
+    "empty": "(empty)"
+  },
+  "reset": {
+    "subject": "Password reset",
+    "preheader": "Choose a new password with the link inside.",
+    "tag": "Account security",
+    "kicker": "Requested reset",
+    "title": "Password reset",
+    "hello": "Hello {name},",
+    "intro": "You requested a password reset on Planeola. Use the button below to choose a new password.",
+    "button": "Choose a new password",
+    "important": "Important",
+    "expiry": "The link expires in {minutes} minutes and can only be used once.",
+    "ignore": "If you did not make this request, you can ignore this email — your password has not been changed.",
+    "text_intro": "You requested a password reset on Planeola: {app_url}",
+    "text_link": "Open this link to choose a new password:"
+  },
+  "verify": {
+    "subject": "{code} is your confirmation code",
+    "preheader": "Your confirmation code expires in 15 minutes.",
+    "tag": "Sign-up",
+    "kicker": "Expires in 15 minutes",
+    "title": "Confirm your email",
+    "hello": "Hello,",
+    "code_label": "Confirmation code",
+    "text_code": "Your confirmation code is: {code}",
+    "instructions": "Enter it on the sign-up page to finish creating your account. The code expires in 15 minutes.",
+    "ignore": "If you did not try to create an account, you can ignore this email."
+  },
+  "invite": {
+    "subject": "You've been invited to join {org_name}",
+    "subject_unnamed": "You've been invited to an organization",
+    "org_named": "\"{org_name}\"",
+    "org_unnamed": "an organization",
+    "preheader": "{inviter} invited you to join {org}.",
+    "tag": "Invitation",
+    "kicker": "From {inviter}",
+    "title": "You’ve been invited to join {org}",
+    "hello": "Hello {name},",
+    "body": "{inviter_strong} invited you to join {org} on Planeola.",
+    "login_button": "Log in and accept",
+    "login_hint": "Log in at {link} to see and accept the invitation.",
+    "register_button": "Create my account",
+    "register_hint": "Create your account at {link} using this same email address to see and accept the invitation."
+  },
+  "notes": {
+    "subject": "Notes updated - {name}",
+    "preheader": "{name} updated their availability notes.",
+    "tag": "Member activity",
+    "kicker": "Availability notes",
+    "title": "Notes updated",
+    "body": "{name_strong} updated their availability notes.",
+    "previous": "Previous notes",
+    "new": "New notes",
+    "button": "Open the member record"
+  }
+}

@@ -1,4 +1,5 @@
 import html
+import json
 import logging
 import os
 import smtplib
@@ -6,11 +7,22 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from urllib.parse import urlparse
 
+from fastapi import Request
+
 from core.config import APP_NAME, APP_URL
 
 logger = logging.getLogger("planeola.email")
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "email_templates")
+LOCALES_DIR = os.path.join(os.path.dirname(__file__), "email_locales")
+
+DEFAULT_LANGUAGE = "en"
+LOCALES = {}
+for _name in os.listdir(LOCALES_DIR):
+    with open(os.path.join(LOCALES_DIR, _name), encoding="utf-8") as _f:
+        LOCALES[_name.removesuffix(".json")] = json.load(_f)
+
+STRONG = '<strong style="font-weight: 600; color: #141414">{}</strong>'
 
 # The name given in the SMTP greeting. Left unset, smtplib looks up the
 # machine's own FQDN once connected; where reverse DNS is slow that lookup can
@@ -31,7 +43,35 @@ def _deliver(host: str, port: int, username: str, password: str, message: MIMEMu
         server.send_message(message)
 
 
-def _send(recipient: str, subject: str, text_body: str, template: str, **fields) -> bool:
+def request_language(request: Request) -> str:
+    first = request.headers.get("accept-language", "").split(",")[0]
+    code = first.split(";")[0].strip().lower().split("-")[0]
+    return code if code in LOCALES else DEFAULT_LANGUAGE
+
+
+def _texts(lang: str, section: str, values: dict, escape: bool = False) -> dict:
+    locale = LOCALES.get(lang, LOCALES[DEFAULT_LANGUAGE])
+    strings = {**locale["common"], **locale[section]}
+    if escape:
+        strings = {key: html.escape(text, quote=False) for key, text in strings.items()}
+    return {key: text.format(app_url=APP_URL, **values) for key, text in strings.items()}
+
+
+def _render(template: str, lang: str, section: str, values: dict) -> str:
+    # escape values before calling
+    texts = _texts(lang, section, values, escape=True)
+    with open(os.path.join(TEMPLATES_DIR, template), encoding="utf-8") as f:
+        return f.read().format(
+            app_url=APP_URL,
+            lang=lang,
+            **values,
+            **{f"t_{key}": text for key, text in texts.items()},
+        )
+
+
+def _send(
+    recipient: str, subject: str, text_body: str, template: str, lang: str, section: str, **values
+) -> bool:
     """Returns False instead of raising: a failed email must not break the request."""
     host = os.getenv("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT", 587))
@@ -45,9 +85,7 @@ def _send(recipient: str, subject: str, text_body: str, template: str, **fields)
         return False
 
     try:
-        template_path = os.path.join(TEMPLATES_DIR, template)
-        with open(template_path, encoding="utf-8") as f:
-            html_body = f.read().format(app_url=APP_URL, **fields)
+        html_body = _render(template, lang, section, values)
 
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
@@ -65,124 +103,156 @@ def _send(recipient: str, subject: str, text_body: str, template: str, **fields)
 
 
 def send_password_reset_email(
-    recipient_email: str, recipient_name: str, reset_url: str, expires_in_minutes: int
+    recipient_email: str,
+    recipient_name: str,
+    reset_url: str,
+    expires_in_minutes: int,
+    lang: str = DEFAULT_LANGUAGE,
 ) -> bool:
+    t = _texts(lang, "reset", {"name": recipient_name, "minutes": expires_in_minutes})
     text_body = f"""
-Hello {recipient_name},
+{t["hello"]}
 
-You requested a password reset on Planeola: {APP_URL}
+{t["text_intro"]}
 
-Open this link to choose a new password:
+{t["text_link"]}
 {reset_url}
 
-The link expires in {expires_in_minutes} minutes and can only be used once.
+{t["expiry"]}
 
-If you did not make this request, you can ignore this email: your password has not been changed.
+{t["ignore"]}
 
-Best regards,
+{t["regards"]}
 Planeola
 """
     return _send(
         recipient_email,
-        "Password reset",
+        t["subject"],
         text_body,
         "password_reset_email_template.html",
-        recipient_name=html.escape(recipient_name),
+        lang,
+        "reset",
+        name=STRONG.format(html.escape(recipient_name)),
         reset_url=html.escape(reset_url, quote=True),
-        expires_in_minutes=expires_in_minutes,
+        minutes=expires_in_minutes,
     )
 
 
-def send_verification_code_email(recipient_email: str, code: str) -> bool:
+def send_verification_code_email(
+    recipient_email: str, code: str, lang: str = DEFAULT_LANGUAGE
+) -> bool:
+    t = _texts(lang, "verify", {"code": code})
     text_body = f"""
-Hello,
+{t["hello"]}
 
-Your confirmation code is: {code}
+{t["text_code"]}
 
-Enter it on the sign-up page to finish creating your account. The code expires
-in 15 minutes.
+{t["instructions"]}
 
-If you did not try to create an account, you can ignore this email.
+{t["ignore"]}
 
-Best regards,
+{t["regards"]}
 Planeola
 """
     return _send(
         recipient_email,
-        f"{code} is your confirmation code",
+        t["subject"],
         text_body,
         "verification_code_email_template.html",
+        lang,
+        "verify",
         code=code,
     )
 
 
+def _org_label(lang: str, org_name: str) -> str:
+    strings = LOCALES.get(lang, LOCALES[DEFAULT_LANGUAGE])["invite"]
+    return strings["org_named"].format(org_name=org_name) if org_name else strings["org_unnamed"]
+
+
 def send_invitation_email(
-    recipient_email: str, recipient_name: str, org_name: str, inviter_email: str, has_account: bool
+    recipient_email: str,
+    recipient_name: str,
+    org_name: str,
+    inviter_email: str,
+    has_account: bool,
+    lang: str = DEFAULT_LANGUAGE,
 ) -> bool:
     """The call to action depends on whether the person already has a Login."""
-    org_label = f' "{org_name}"' if org_name else " an organization"
+    action = "login" if has_account else "register"
+    cta_url = f"{APP_URL}/{action}"
+    org = _org_label(lang, org_name)
 
-    if has_account:
-        cta_url = f"{APP_URL}/login"
-        cta_label = "Log in and accept"
-        cta_text = f"Log in at {cta_url} to see and accept the invitation."
-        cta_html = f'Log in at <a href="{cta_url}">{cta_url}</a> to see and accept the invitation.'
-    else:
-        cta_url = f"{APP_URL}/register"
-        cta_label = "Create my account"
-        cta_text = (
-            f"Create your account at {cta_url} using this same email address "
-            "to see and accept the invitation."
-        )
-        cta_html = (
-            f'Create your account at <a href="{cta_url}">{cta_url}</a> '
-            "using this same email address to see and accept the invitation."
-        )
+    plain = {
+        "name": recipient_name,
+        "org_name": org_name,
+        "org": org,
+        "inviter": inviter_email,
+        "inviter_strong": inviter_email,
+        "link": cta_url,
+    }
+    rich = {
+        "name": html.escape(recipient_name),
+        "org_name": html.escape(org_name),
+        "org": html.escape(org),
+        "inviter": html.escape(inviter_email),
+        "inviter_strong": STRONG.format(html.escape(inviter_email)),
+        "link": f'<a href="{cta_url}">{cta_url}</a>',
+    }
+    t = _texts(lang, "invite", plain)
+    rich_t = _texts(lang, "invite", rich, escape=True)
 
     text_body = f"""
-Hello {recipient_name},
+{t["hello"]}
 
-{inviter_email} invited you to join{org_label} on Planeola.
+{t["body"]}
 
-{cta_text}
+{t[f"{action}_hint"]}
 
-Best regards,
+{t["regards"]}
 Planeola
 """
     return _send(
         recipient_email,
-        f"You've been invited to join {org_name}"
-        if org_name
-        else "You've been invited to an organization",
+        t["subject"] if org_name else t["subject_unnamed"],
         text_body,
         "invitation_email_template.html",
-        recipient_name=html.escape(recipient_name),
-        inviter_email=html.escape(inviter_email),
-        org_label=html.escape(org_label),
+        lang,
+        "invite",
+        **rich,
         cta_url=cta_url,
-        cta_label=cta_label,
-        cta_html=cta_html,
+        cta_label=rich_t[f"{action}_button"],
+        cta_html=rich_t[f"{action}_hint"],
     )
 
 
 def send_notes_notification_email(
-    recipient_email: str, member_name: str, old_notes: str, new_notes: str
+    recipient_email: str,
+    member_name: str,
+    old_notes: str,
+    new_notes: str,
+    lang: str = DEFAULT_LANGUAGE,
 ) -> bool:
+    t = _texts(lang, "notes", {"name": member_name, "name_strong": member_name})
     text_body = f"""
-{member_name} updated their availability notes.
+{t["preheader"]}
 
-Previous notes:
-{old_notes or "(empty)"}
+{t["previous"]}:
+{old_notes or t["empty"]}
 
-New notes:
-{new_notes or "(empty)"}
+{t["new"]}:
+{new_notes or t["empty"]}
 """
+    empty = html.escape(t["empty"])
     return _send(
         recipient_email,
-        f"Notes updated - {member_name}",
+        t["subject"],
         text_body,
         "notes_email_template.html",
-        member_name=html.escape(member_name),
-        old_notes=html.escape(old_notes) if old_notes else "(empty)",
-        new_notes=html.escape(new_notes) if new_notes else "(empty)",
+        lang,
+        "notes",
+        name=html.escape(member_name),
+        name_strong=STRONG.format(html.escape(member_name)),
+        old_notes=html.escape(old_notes) if old_notes else empty,
+        new_notes=html.escape(new_notes) if new_notes else empty,
     )

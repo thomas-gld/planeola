@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="{lang}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="x-apple-disable-message-reformatting" />
-    <title>Invitation</title>
+    <title>{t_tag}</title>
   </head>
   <body style="margin: 0; padding: 0; background: #f2f5fb">
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
-      {inviter_email} invited you to join{org_label}.
+      {t_preheader}
     </div>
     <table
       role="presentation"
@@ -65,7 +65,7 @@
                         color: #a1a1a1;
                       "
                     >
-                      Invitation
+                      {t_tag}
                     </td>
                   </tr>
                 </table>
@@ -87,7 +87,7 @@
                     margin-bottom: 6px;
                   "
                 >
-                  From {inviter_email}
+                  {t_kicker}
                 </div>
                 <h1
                   style="
@@ -101,7 +101,7 @@
                     color: #141414;
                   "
                 >
-                  You&rsquo;ve been invited to join{org_label}
+                  {t_title}
                 </h1>
                 <p
                   style="
@@ -114,7 +114,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  Hello {recipient_name},
+                  {t_hello}
                 </p>
                 <p
                   style="
@@ -127,10 +127,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  <strong style="font-weight: 600; color: #141414"
-                    >{inviter_email}</strong
-                  >
-                  invited you to join{org_label} on Planeola.
+                  {t_body}
                 </p>
                 <table
                   role="presentation"
@@ -191,7 +188,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  Best regards,<br /><strong
+                  {t_regards}<br /><strong
                     style="font-weight: 600; color: #141414"
                     >Planeola</strong
                   >
@@ -226,7 +223,7 @@
                         color: #a1a1a1;
                       "
                     >
-                      Sent automatically &mdash; please do not reply
+                      {t_footer}
                     </td>
                     <td
                       align="right"

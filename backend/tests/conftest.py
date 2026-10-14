@@ -67,7 +67,7 @@ def verification_codes(monkeypatch):
 
     codes = {}
 
-    def _capture(recipient_email, code):
+    def _capture(recipient_email, code, lang):
         codes[recipient_email.strip().lower()] = code
         return True
 
@@ -82,7 +82,7 @@ def reset_links(monkeypatch):
 
     links = {}
 
-    def _capture(recipient_email, recipient_name, reset_url, expires_in_minutes):
+    def _capture(recipient_email, recipient_name, reset_url, expires_in_minutes, lang):
         links[recipient_email.strip().lower()] = reset_url
         return True
 
