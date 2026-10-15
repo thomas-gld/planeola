@@ -7,7 +7,11 @@ from core.logging import logger
 from core.options import get_option, org_today
 from core.security import get_account_id, get_current_user, require_admin
 from db import SessionDep
-from email_service import send_invitation_email, send_notes_notification_email
+from email_service import (
+    request_language,
+    send_invitation_email,
+    send_notes_notification_email,
+)
 from models import Assignment, Invitation, Login, User, UserRole
 from models import Member as MemberRow
 from schemas import Member
@@ -29,7 +33,9 @@ async def _find_login(session: AsyncSession, email: str) -> Login | None:
     return await session.scalar(select(Login).where(func.lower(Login.email) == email.lower()))
 
 
-async def _deliver_invitation(session: AsyncSession, member: MemberRow, invitation) -> bool:
+async def _deliver_invitation(
+    session: AsyncSession, member: MemberRow, invitation, lang: str
+) -> bool:
     # has_account is looked up at send time: the person may have signed up since.
     # In a thread, not in the background: the admin is told whether it went out.
     return await run_in_threadpool(
@@ -39,6 +45,7 @@ async def _deliver_invitation(session: AsyncSession, member: MemberRow, invitati
         org_name=await get_option(session, member.account_id, "org_name") or "",
         inviter_email=invitation.invited_by_email,
         has_account=await _find_login(session, invitation.email) is not None,
+        lang=lang,
     )
 
 
@@ -173,6 +180,7 @@ async def update_member(
     data: Member,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user),
+    lang: str = Depends(request_language),
     session: AsyncSession = SessionDep,
 ):
     member = await _find_member(session, member_id, current_user)
@@ -207,6 +215,7 @@ async def update_member(
                 member_name=f"{member.first_name} {member.last_name}",
                 old_notes=data.previous_availability_notes,
                 new_notes=member.availability_notes,
+                lang=lang,
             )
         else:
             logger.warning(f"No manager_email: notes change of member {member_id} not sent")
@@ -268,6 +277,7 @@ async def delete_member(
 async def invite_member(
     member_id: int,
     current_user: dict = Depends(require_admin),
+    lang: str = Depends(request_language),
     session: AsyncSession = SessionDep,
 ):
 
@@ -336,7 +346,7 @@ async def invite_member(
         "invitation_id": invitation.id,
         "name": fullname,
         "email": email,
-        "email_sent": await _deliver_invitation(session, member, invitation),
+        "email_sent": await _deliver_invitation(session, member, invitation, lang),
     }
 
 
@@ -344,11 +354,12 @@ async def invite_member(
 async def resend_invitation(
     member_id: int,
     current_user: dict = Depends(require_admin),
+    lang: str = Depends(request_language),
     session: AsyncSession = SessionDep,
 ):
     member = await _find_member(session, member_id, current_user)
     invitation = await _find_invitation(session, member_id)
-    email_sent = await _deliver_invitation(session, member, invitation)
+    email_sent = await _deliver_invitation(session, member, invitation, lang)
     return {"status": "resent", "email": invitation.email, "email_sent": email_sent}
 
 

@@ -1,0 +1,65 @@
+{
+  "common": {
+    "regards": "Cordialement,",
+    "footer": "Envoi automatique — merci de ne pas répondre",
+    "empty": "(vide)"
+  },
+  "reset": {
+    "subject": "Réinitialisation du mot de passe",
+    "preheader": "Choisissez un nouveau mot de passe avec le lien ci-dessous.",
+    "tag": "Sécurité du compte",
+    "kicker": "Réinitialisation demandée",
+    "title": "Réinitialisation du mot de passe",
+    "hello": "Bonjour {name},",
+    "intro": "Vous avez demandé à réinitialiser votre mot de passe sur Planeola. Utilisez le bouton ci-dessous pour en choisir un nouveau.",
+    "button": "Choisir un nouveau mot de passe",
+    "important": "Important",
+    "expiry": "Le lien expire dans {minutes} minutes et ne peut servir qu’une seule fois.",
+    "ignore": "Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet email : votre mot de passe n’a pas été modifié.",
+    "text_intro": "Vous avez demandé à réinitialiser votre mot de passe sur Planeola : {app_url}",
+    "text_link": "Ouvrez ce lien pour choisir un nouveau mot de passe :"
+  },
+  "verify": {
+    "subject": "{code} est votre code de confirmation",
+    "preheader": "Votre code de confirmation expire dans 15 minutes.",
+    "tag": "Inscription",
+    "kicker": "Expire dans 15 minutes",
+    "title": "Confirmez votre email",
+    "hello": "Bonjour,",
+    "code_label": "Code de confirmation",
+    "text_code": "Votre code de confirmation est : {code}",
+    "instructions": "Saisissez-le sur la page d’inscription pour terminer la création de votre compte. Le code expire dans 15 minutes.",
+    "ignore": "Si vous n’avez pas essayé de créer un compte, vous pouvez ignorer cet email."
+  },
+  "invite": {
+    "subject": "Vous êtes invité à rejoindre {org_name}",
+    "subject_unnamed": "Vous êtes invité à rejoindre une organisation",
+    "org_named": "« {org_name} »",
+    "org_unnamed": "une organisation",
+    "preheader": "{inviter} vous invite à rejoindre {org}.",
+    "tag": "Invitation",
+    "kicker": "De la part de {inviter}",
+    "title": "Vous êtes invité à rejoindre {org}",
+    "hello": "Bonjour {name},",
+    "body": "{inviter_strong} vous invite à rejoindre {org} sur Planeola.",
+    "login_button": "Se connecter et accepter",
+    "login_hint": "Connectez-vous sur {link} pour voir et accepter l’invitation.",
+    "register_button": "Créer mon compte",
+    "register_hint": "Créez votre compte sur {link} avec cette même adresse email pour voir et accepter l’invitation."
+  },
+  "notes": {
+    "subject": "Notes modifiées - {name}",
+    "preheader": "{name} a modifié ses notes de disponibilité.",
+    "tag": "Activité des membres",
+    "kicker": "Notes de disponibilité",
+    "title": "Notes modifiées",
+    "body": "{name_strong} a modifié ses notes de disponibilité.",
+    "previous": "Anciennes notes",
+    "new": "Nouvelles notes",
+    "button": "Ouvrir la fiche du membre"
+  },
+  "group": {
+    "tag": "Message",
+    "button": "Ouvrir Planeola"
+  }
+}

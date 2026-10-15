@@ -1383,3 +1383,83 @@ def test_a_member_cannot_change_their_own_email(client, member_session, auth):
     assert r.json()["first_name"] == "Patricia"
     assert r.json()["categories"] == me["categories"]
     assert client.put("/api/auth/update-info", headers=h, json={"email": "x@example.test"}).status_code in (404, 405)
+
+
+@pytest.fixture
+def group_emails(monkeypatch):
+    import routers.mailing as mailing_router
+
+    calls = []
+
+    def _capture(recipients, subject, message, org_name, reply_to, lang):
+        calls.append({"recipients": recipients, "subject": subject, "reply_to": reply_to})
+        return len(recipients), 0
+
+    monkeypatch.setattr(mailing_router, "send_group_email", _capture)
+    return calls
+
+
+def _add_member(client, headers, first_name, categories, email=""):
+    r = client.post(
+        "/api/members",
+        headers=headers,
+        json={"last_name": "x", "first_name": first_name, "categories": categories, "email": email},
+    )
+    assert r.status_code == 200, r.text
+    return r.json()["id"]
+
+
+def test_group_email_preview_renders_the_sanitized_message(client, register, auth):
+    token, _ = register(org_name="Club & co")
+    r = client.post(
+        "/api/mailing/preview",
+        headers=auth(token),
+        json={"subject": "News", "message": "<b>Hi</b><script>x()</script>"},
+    )
+    assert r.status_code == 200, r.text
+    html = r.json()["html"]
+    assert "<b>Hi</b>" in html and "<script" not in html
+    assert "Club &amp; co</span>" in html
+
+
+def test_group_email_only_reaches_the_admins_active_members(
+    client, register, auth, unique_email, group_emails
+):
+    token, admin_email = register()
+    other_token, _ = register()
+    h = auth(token)
+    mine = _add_member(client, h, "Ann", ["member"], unique_email)
+    resigned = _add_member(client, h, "Res", ["member"], "pytest-res@example.test")
+    client.put(f"/api/members/{resigned}/resign", headers=h)
+    foreign = _add_member(client, auth(other_token), "Eve", ["member"], "pytest-eve@example.test")
+
+    r = client.post(
+        "/api/mailing/send",
+        headers=h,
+        json={"subject": "Hello\nBcc: x", "message": "<p>Hi</p>", "member_ids": [mine, resigned, foreign]},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json() == {"sent": 1, "failed": 0, "skipped": 2}
+    assert group_emails == [
+        {"recipients": [unique_email], "subject": "Hello Bcc: x", "reply_to": admin_email}
+    ]
+
+    empty = client.post(
+        "/api/mailing/send", headers=h, json={"subject": "S", "message": "<b> </b>", "member_ids": [mine]}
+    )
+    assert empty.status_code == 400
+    nobody = client.post(
+        "/api/mailing/send", headers=h, json={"subject": "S", "message": "Hi", "member_ids": [foreign]}
+    )
+    assert nobody.status_code == 400
+
+
+def test_group_email_requires_admin(client, member_session, auth):
+    _, member_token, member_id = member_session()
+    r = client.post(
+        "/api/mailing/send",
+        headers=auth(member_token),
+        json={"subject": "S", "message": "Hi", "member_ids": [member_id]},
+    )
+    assert r.status_code == 403
+    assert client.post("/api/mailing/preview", headers=auth(member_token), json={}).status_code == 403

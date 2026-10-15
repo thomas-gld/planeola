@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="{lang}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="x-apple-disable-message-reformatting" />
-    <title>Confirm your email</title>
+    <title>{t_title}</title>
   </head>
   <body style="margin: 0; padding: 0; background: #f2f5fb">
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
-      Your confirmation code expires in 15 minutes.
+      {t_preheader}
     </div>
     <table
       role="presentation"
@@ -65,7 +65,7 @@
                         color: #a1a1a1;
                       "
                     >
-                      Sign-up
+                      {t_tag}
                     </td>
                   </tr>
                 </table>
@@ -87,7 +87,7 @@
                     margin-bottom: 6px;
                   "
                 >
-                  Expires in 15 minutes
+                  {t_kicker}
                 </div>
                 <h1
                   style="
@@ -101,7 +101,7 @@
                     color: #141414;
                   "
                 >
-                  Confirm your email
+                  {t_title}
                 </h1>
                 <p
                   style="
@@ -114,7 +114,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  Hello,
+                  {t_hello}
                 </p>
                 <table
                   role="presentation"
@@ -145,7 +145,7 @@
                           margin-bottom: 10px;
                         "
                       >
-                        Confirmation code
+                        {t_code_label}
                       </div>
                       <div
                         style="
@@ -175,8 +175,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  Enter it on the sign-up page to finish creating your account.
-                  The code expires in 15 minutes.
+                  {t_instructions}
                 </p>
                 <p
                   style="
@@ -189,8 +188,7 @@
                     color: #767676;
                   "
                 >
-                  If you did not try to create an account, you can ignore this
-                  email.
+                  {t_ignore}
                 </p>
                 <p
                   style="
@@ -203,7 +201,7 @@
                     color: #3d3d3d;
                   "
                 >
-                  Best regards,<br /><strong
+                  {t_regards}<br /><strong
                     style="font-weight: 600; color: #141414"
                     >Planeola</strong
                   >
@@ -238,7 +236,7 @@
                         color: #a1a1a1;
                       "
                     >
-                      Sent automatically &mdash; please do not reply
+                      {t_footer}
                     </td>
                     <td
                       align="right"

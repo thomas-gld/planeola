@@ -101,10 +101,15 @@ create-organization modal.
 - Date formats are keys too (`formats.*`): dayjs follows the language, the
   order does not. `'MMMM YYYY'` and `'YYYY-MM-DD'` stay literal.
 - Not translated: organization data (category and time-slot names), backend
-  error messages (`detail`, shown as is), emails. Only the names the
+  error messages (`detail`, shown as is). Only the names the
   create-organization modal offers come from `orgs.defaults.*`; once saved
   they are data. The fallbacks in `lib/` stay English: an organization
   without the option already stores those names.
+- Emails: `backend/email_locales/{en,es,fr,ru}.json` change together, same keys
+  and placeholders (`test_email.py` checks). A template shows a string as
+  `{t_<key>}`. The language is the triggering browser's, never stored: `api.js`
+  sends it as `Accept-Language`, `request_language` reads it. So an invitation
+  is written in the admin's language, not the recipient's.
 - Legal pages are Markdown files, not keys: `Legal.jsx` picks the one in the app's
   language, or `?lang=` (the links between versions in the texts).
 

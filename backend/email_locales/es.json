@@ -1,0 +1,65 @@
+{
+  "common": {
+    "regards": "Un saludo,",
+    "footer": "Envío automático — por favor, no respondas",
+    "empty": "(vacío)"
+  },
+  "reset": {
+    "subject": "Restablecimiento de la contraseña",
+    "preheader": "Elige una nueva contraseña con el enlace de este correo.",
+    "tag": "Seguridad de la cuenta",
+    "kicker": "Restablecimiento solicitado",
+    "title": "Restablecimiento de la contraseña",
+    "hello": "Hola, {name}:",
+    "intro": "Has solicitado restablecer tu contraseña en Planeola. Usa el botón de abajo para elegir una nueva.",
+    "button": "Elegir una nueva contraseña",
+    "important": "Importante",
+    "expiry": "El enlace caduca en {minutes} minutos y solo se puede usar una vez.",
+    "ignore": "Si no has hecho esta solicitud, puedes ignorar este correo: tu contraseña no ha cambiado.",
+    "text_intro": "Has solicitado restablecer tu contraseña en Planeola: {app_url}",
+    "text_link": "Abre este enlace para elegir una nueva contraseña:"
+  },
+  "verify": {
+    "subject": "{code} es tu código de confirmación",
+    "preheader": "Tu código de confirmación caduca en 15 minutos.",
+    "tag": "Registro",
+    "kicker": "Caduca en 15 minutos",
+    "title": "Confirma tu correo",
+    "hello": "Hola:",
+    "code_label": "Código de confirmación",
+    "text_code": "Tu código de confirmación es: {code}",
+    "instructions": "Introdúcelo en la página de registro para terminar de crear tu cuenta. El código caduca en 15 minutos.",
+    "ignore": "Si no has intentado crear una cuenta, puedes ignorar este correo."
+  },
+  "invite": {
+    "subject": "Te han invitado a unirte a {org_name}",
+    "subject_unnamed": "Te han invitado a una organización",
+    "org_named": "«{org_name}»",
+    "org_unnamed": "una organización",
+    "preheader": "{inviter} te ha invitado a unirte a {org}.",
+    "tag": "Invitación",
+    "kicker": "De {inviter}",
+    "title": "Te han invitado a unirte a {org}",
+    "hello": "Hola, {name}:",
+    "body": "{inviter_strong} te ha invitado a unirte a {org} en Planeola.",
+    "login_button": "Iniciar sesión y aceptar",
+    "login_hint": "Inicia sesión en {link} para ver y aceptar la invitación.",
+    "register_button": "Crear mi cuenta",
+    "register_hint": "Crea tu cuenta en {link} con esta misma dirección de correo para ver y aceptar la invitación."
+  },
+  "notes": {
+    "subject": "Notas actualizadas - {name}",
+    "preheader": "{name} ha actualizado sus notas de disponibilidad.",
+    "tag": "Actividad de los miembros",
+    "kicker": "Notas de disponibilidad",
+    "title": "Notas actualizadas",
+    "body": "{name_strong} ha actualizado sus notas de disponibilidad.",
+    "previous": "Notas anteriores",
+    "new": "Notas nuevas",
+    "button": "Abrir la ficha del miembro"
+  },
+  "group": {
+    "tag": "Mensaje",
+    "button": "Abrir Planeola"
+  }
+}

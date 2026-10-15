@@ -48,8 +48,10 @@ The "remarks" field is free text: organizations must not enter sensitive
 data in it (health, opinions, etc.).
 
 **Emails sent** — only those the service needs: verification code,
-password-reset link, invitation to join an organization, and a notice to
-the manager when a member changes their availability notes. No marketing
+password-reset link, invitation to join an organization, a notice to the
+manager when a member changes their availability notes, and messages an
+administrator writes to their organization's members (the administrator's
+address is included for replies; the message is not kept). No marketing
 email.
 
 **Technical logs** — for security (legitimate interest, GDPR Art. 6(1)(f)):

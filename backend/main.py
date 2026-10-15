@@ -13,7 +13,7 @@ from core.config import APP_NAME, APP_URL, PRODUCTION
 from core.limiter import limiter
 from core.logging import logger
 from db import engine
-from routers import assignments, auth, holidays, members, options, submissions
+from routers import assignments, auth, holidays, mailing, members, options, submissions
 from routers.static import register_static
 
 
@@ -85,7 +85,7 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-for module in (auth, members, submissions, assignments, holidays, options):
+for module in (auth, members, submissions, assignments, holidays, options, mailing):
     app.include_router(module.router)
 
 # Last, so the SPA catch-all doesn't shadow the API.
