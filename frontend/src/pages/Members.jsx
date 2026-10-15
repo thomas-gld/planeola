@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCopy, Plus, Users, ChevronRight, X } from 'lucide-react';
+import { ClipboardCopy, Mail, Plus, Users, ChevronRight, X } from 'lucide-react';
 import api from '../lib/api';
 import useFeedback from '../hooks/useFeedback';
 import {
@@ -14,6 +14,7 @@ import Signature from '../components/Signature';
 import PageHeader from '../components/PageHeader';
 import StatusPill from '../components/StatusPill';
 import OrgSwitcher from '../components/OrgSwitcher';
+import GroupEmailModal from '../components/GroupEmailModal';
 
 // `label` and `title` are translation keys.
 const ACCOUNT_STATES = {
@@ -100,6 +101,7 @@ export default function Members() {
   const { notify, confirm } = useFeedback();
   const [members, setMembers] = useState([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [mailing, setMailing] = useState(false);
 
   useEffect(() => {
     Promise.all([api.get('/members'), api.get('/options')]).then(([membersRes, optionsRes]) => {
@@ -248,6 +250,13 @@ export default function Members() {
       >
         <OrgSwitcher />
         <button
+          onClick={() => setMailing(true)}
+          className="inline-flex items-center gap-2 border-2 border-ink rounded-brutal-sm bg-primary-tint shadow-brutal-xs px-3.5 py-2 text-row font-bold text-primary-deep"
+        >
+          <Mail size={14} />
+          {t('group_email.open')}
+        </button>
+        <button
           onClick={() => navigate('/members/new')}
           className="inline-flex items-center gap-2 border-2 border-ink rounded-brutal-sm bg-secondary-tint shadow-brutal-xs px-3.5 py-2 text-row font-bold text-secondary-deep"
         >
@@ -255,6 +264,14 @@ export default function Members() {
           {t('members.add')}
         </button>
       </PageHeader>
+
+      {mailing && (
+        <GroupEmailModal
+          members={active}
+          categories={categories}
+          onClose={() => setMailing(false)}
+        />
+      )}
 
       <main className="flex-1 flex flex-col bg-surface">
         <div className="flex items-center gap-3 px-7 py-[13px] border-b-2 border-ink bg-secondary-tint text-secondary">

@@ -49,8 +49,10 @@ pas y saisir de données sensibles (santé, opinions, etc.).
 
 **Emails envoyés** — uniquement ceux nécessaires au service : code de
 vérification, lien de réinitialisation du mot de passe, invitation à
-rejoindre une organisation, et notification au responsable quand un membre
-modifie ses notes de disponibilité. Aucun email publicitaire.
+rejoindre une organisation, notification au responsable quand un membre
+modifie ses notes de disponibilité, et messages qu'un administrateur écrit
+aux membres de son organisation (l'adresse de l'administrateur y figure pour
+la réponse ; le message n'est pas conservé). Aucun email publicitaire.
 
 **Journaux techniques** — pour la sécurité (intérêt légitime, art. 6-1-f) :
 les connexions, réussies ou non, et certaines erreurs sont journalisées avec

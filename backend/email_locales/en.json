@@ -57,5 +57,9 @@
     "previous": "Previous notes",
     "new": "New notes",
     "button": "Open the member record"
+  },
+  "group": {
+    "tag": "Message",
+    "button": "Open Planeola"
   }
 }

@@ -90,3 +90,50 @@ def test_email_language_follows_the_browser(header, expected):
     headers = [(b"accept-language", header.encode())] if header else []
     request = Request({"type": "http", "headers": headers})
     assert email_service.request_language(request) == expected
+
+
+def test_group_email_goes_out_one_per_member_over_one_connection(monkeypatch):
+    for name in ("SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM_EMAIL"):
+        monkeypatch.setenv(name, "x")
+    connections, sent = [], []
+
+    class FakeSMTP:
+        def __init__(self, host, port, **kwargs):
+            connections.append(host)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def starttls(self):
+            pass
+
+        def login(self, *args):
+            pass
+
+        def send_message(self, message):
+            if message["To"] == "refused@example.test":
+                raise email_service.smtplib.SMTPRecipientsRefused({})
+            sent.append(message)
+
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+    result = email_service.send_group_email(
+        ["ada@example.test", "refused@example.test", "cy@example.test"],
+        "Next month",
+        '<b>Hi</b><script>alert(1)</script>',
+        "Org, Inc",
+        "boss@example.test",
+        "fr",
+    )
+
+    assert result == (2, 1)
+    assert len(connections) == 1
+    assert [m["To"] for m in sent] == ["ada@example.test", "cy@example.test"]
+    assert sent[0]["Reply-To"] == "boss@example.test"
+    assert '"Org, Inc via Planeola"' in sent[0]["From"]
+    text, html_body = [p.get_payload(decode=True).decode() for p in sent[0].get_payload()]
+    assert "Hi" in text
+    assert "<b>Hi</b>" in html_body and "<script" not in html_body
+    assert "Org, Inc</span>" in html_body and "boss@example.test" not in html_body

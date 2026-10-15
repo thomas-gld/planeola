@@ -79,3 +79,14 @@ class CategoryRename(BaseModel):
 
 class HolidayRequest(BaseModel):
     date: str
+
+
+class GroupEmailPreview(BaseModel):
+    subject: str = ""
+    message: str = ""
+
+
+class GroupEmailSend(BaseModel):
+    subject: str
+    message: str
+    member_ids: list[int]

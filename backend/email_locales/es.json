@@ -57,5 +57,9 @@
     "previous": "Notas anteriores",
     "new": "Notas nuevas",
     "button": "Abrir la ficha del miembro"
+  },
+  "group": {
+    "tag": "Mensaje",
+    "button": "Abrir Planeola"
   }
 }

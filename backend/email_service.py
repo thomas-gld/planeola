@@ -3,13 +3,16 @@ import json
 import logging
 import os
 import smtplib
+from contextlib import contextmanager
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 from urllib.parse import urlparse
 
 from fastapi import Request
 
 from core.config import APP_NAME, APP_URL
+from core.rich_text import rich_text_to_plain, sanitize_rich_text
 
 logger = logging.getLogger("planeola.email")
 
@@ -23,6 +26,12 @@ for _name in os.listdir(LOCALES_DIR):
         LOCALES[_name.removesuffix(".json")] = json.load(_f)
 
 STRONG = '<strong style="font-weight: 600; color: #141414">{}</strong>'
+ORG_HEADER = (
+    '<span style="display: inline-block; border-left: 2px solid #141414; padding-left: 14px; '
+    "font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Courier New', monospace; "
+    'font-size: 11px; font-weight: 700; line-height: 30px; letter-spacing: 0.12em; '
+    'text-transform: uppercase; color: #3d3d3d">{}</span>'
+)
 
 # The name given in the SMTP greeting. Left unset, smtplib looks up the
 # machine's own FQDN once connected; where reverse DNS is slow that lookup can
@@ -30,7 +39,23 @@ STRONG = '<strong style="font-weight: 600; color: #141414">{}</strong>'
 EHLO_HOSTNAME = urlparse(APP_URL).hostname or "localhost"
 
 
-def _deliver(host: str, port: int, username: str, password: str, message: MIMEMultipart) -> None:
+def _smtp_settings() -> dict | None:
+    settings = {
+        "host": os.getenv("SMTP_HOST"),
+        "port": int(os.getenv("SMTP_PORT", 587)),
+        "username": os.getenv("SMTP_USERNAME"),
+        "password": os.getenv("SMTP_PASSWORD"),
+        "from_email": os.getenv("SMTP_FROM_EMAIL"),
+        "from_name": os.getenv("SMTP_FROM_NAME", APP_NAME),
+    }
+    if not all(settings[k] for k in ("host", "username", "password", "from_email")):
+        logger.error("Missing SMTP variables in .env")
+        return None
+    return settings
+
+
+@contextmanager
+def _connect(host: str, port: int, username: str, password: str):
     """Implicit TLS on port 465, STARTTLS otherwise. SMTP_USE_SSL forces either."""
     use_ssl = os.getenv("SMTP_USE_SSL")
     implicit_tls = port == 465 if use_ssl is None else use_ssl.lower() in ("1", "true", "yes")
@@ -40,6 +65,11 @@ def _deliver(host: str, port: int, username: str, password: str, message: MIMEMu
         if not implicit_tls:
             server.starttls()
         server.login(username, password)
+        yield server
+
+
+def _deliver(host: str, port: int, username: str, password: str, message: MIMEMultipart) -> None:
+    with _connect(host, port, username, password) as server:
         server.send_message(message)
 
 
@@ -69,32 +99,40 @@ def _render(template: str, lang: str, section: str, values: dict) -> str:
         )
 
 
+def _message(
+    smtp: dict,
+    recipient: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    from_name: str,
+    reply_to: str = "",
+) -> MIMEMultipart:
+    message = MIMEMultipart("alternative")
+    message["Subject"] = subject
+    message["From"] = formataddr((from_name, smtp["from_email"]))
+    message["To"] = recipient
+    if reply_to:
+        message["Reply-To"] = reply_to
+    message.attach(MIMEText(text_body, "plain", "utf-8"))
+    message.attach(MIMEText(html_body, "html", "utf-8"))
+    return message
+
+
 def _send(
     recipient: str, subject: str, text_body: str, template: str, lang: str, section: str, **values
 ) -> bool:
     """Returns False instead of raising: a failed email must not break the request."""
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT", 587))
-    username = os.getenv("SMTP_USERNAME")
-    password = os.getenv("SMTP_PASSWORD")
-    from_email = os.getenv("SMTP_FROM_EMAIL")
-    from_name = os.getenv("SMTP_FROM_NAME", APP_NAME)
-
-    if not (host and username and password and from_email):
-        logger.error("Missing SMTP variables in .env")
+    smtp = _smtp_settings()
+    if not smtp:
         return False
 
     try:
         html_body = _render(template, lang, section, values)
-
-        message = MIMEMultipart("alternative")
-        message["Subject"] = subject
-        message["From"] = f"{from_name} <{from_email}>"
-        message["To"] = recipient
-        message.attach(MIMEText(text_body, "plain", "utf-8"))
-        message.attach(MIMEText(html_body, "html", "utf-8"))
-
-        _deliver(host, port, username, password, message)
+        message = _message(
+            smtp, recipient, subject, text_body, html_body, from_name=smtp["from_name"]
+        )
+        _deliver(smtp["host"], smtp["port"], smtp["username"], smtp["password"], message)
     except Exception as exc:
         logger.error(f"Could not send {template} to {recipient}: {exc}")
         return False
@@ -256,3 +294,57 @@ def send_notes_notification_email(
         old_notes=html.escape(old_notes) if old_notes else empty,
         new_notes=html.escape(new_notes) if new_notes else empty,
     )
+
+
+def render_group_email(
+    subject: str, message: str, org_name: str, lang: str = DEFAULT_LANGUAGE
+) -> tuple[str, str]:
+    safe_message = sanitize_rich_text(message)
+    text_body = f"""
+{rich_text_to_plain(safe_message)}
+
+{APP_URL}
+"""
+    html_body = _render(
+        "group_email_template.html",
+        lang,
+        "group",
+        {
+            "subject": html.escape(subject),
+            "org_header": ORG_HEADER.format(html.escape(org_name)) if org_name else "",
+            "message_html": safe_message,
+        },
+    )
+    return text_body, html_body
+
+
+def send_group_email(
+    recipients: list[str],
+    subject: str,
+    message: str,
+    org_name: str,
+    reply_to: str,
+    lang: str = DEFAULT_LANGUAGE,
+) -> tuple[int, int]:
+    smtp = _smtp_settings()
+    if not smtp:
+        return 0, len(recipients)
+
+    from_name = f"{org_name} via {APP_NAME}" if org_name else smtp["from_name"]
+    text_body, html_body = render_group_email(subject, message, org_name, lang)
+    sent = 0
+    try:
+        with _connect(smtp["host"], smtp["port"], smtp["username"], smtp["password"]) as server:
+            for email in recipients:
+                mail = _message(
+                    smtp, email, subject, text_body, html_body, from_name, reply_to=reply_to
+                )
+                try:
+                    server.send_message(mail)
+                    sent += 1
+                except smtplib.SMTPRecipientsRefused as exc:
+                    logger.error(f"Group email refused for {email}: {exc}")
+    except Exception as exc:
+        logger.error(f"Group email interrupted after {sent} of {len(recipients)}: {exc}")
+
+    return sent, len(recipients) - sent
