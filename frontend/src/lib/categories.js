@@ -2,7 +2,6 @@ export const DEFAULT_CATEGORIES = [
   { name: 'lead', color: '#dc2626' },
   { name: 'member', color: '#2563eb' },
   { name: 'intern', color: '#16a34a' },
-  { name: 'community service', color: '#ea580c' },
 ];
 
 export function parseCategories(value) {

@@ -6,7 +6,7 @@ import { DEFAULT_TIME_SLOTS } from '../lib/timeSlots';
 import OrgSettingsForm from './OrgSettingsForm';
 
 // Translation keys for default names.
-const CATEGORY_KEYS = ['lead', 'member', 'intern', 'community_service'];
+const CATEGORY_KEYS = ['lead', 'member', 'intern'];
 
 // The settings are applied with the new organization's own token.
 export default function CreateOrganizationModal({ onClose, onCreated }) {
